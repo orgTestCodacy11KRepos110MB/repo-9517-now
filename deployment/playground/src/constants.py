@@ -1,4 +1,4 @@
-from streamlit_webrtc import RTCConfiguration
+# from streamlit_webrtc import RTCConfiguration
 
 
 class Parameters:
@@ -12,9 +12,10 @@ class Parameters:
     top_k: int = 9
 
 
-RTC_CONFIGURATION = RTCConfiguration(
-    {"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
-)
+#
+# RTC_CONFIGURATION = RTCConfiguration(
+#     {"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
+# )
 
 S3_DEMO_PATH = 'https://jina-now-demo.s3.eu-central-1.amazonaws.com/'
 

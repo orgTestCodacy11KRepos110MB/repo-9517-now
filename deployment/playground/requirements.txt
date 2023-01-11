@@ -1,8 +1,7 @@
-streamlit==1.11.1
+streamlit==1.16.0
 extra-streamlit-components==0.1.55
 av==9.1.1
 click==8.0.0
-streamlit-webrtc==0.43.0
 better_profanity==0.7.0
 docarray==0.19.1
 pydantic==1.8.2
