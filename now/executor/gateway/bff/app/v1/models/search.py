@@ -2,7 +2,10 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 from pydantic import BaseModel, Field
 
-from deployment.bff.app.v1.models.shared import BaseRequestModel, ModalityModel
+from now.executor.gateway.bff.app.v1.models.shared import (
+    BaseRequestModel,
+    ModalityModel,
+)
 
 _ProtoValueType = Optional[Union[bool, float, str, list, dict]]
 _StructValueType = Union[

@@ -52,3 +52,5 @@ TAG_OCR_DETECTOR_TEXT_IN_DOC = '_ocr_detector_text_in_doc'
 TAG_INDEXER_DOC_HAS_TEXT = '_indexer_doc_has_text'
 EXECUTOR_PREFIX = 'jinahub+docker://'
 ACCESS_PATHS = '@cc'
+
+CG_BFF_PORT = 8080

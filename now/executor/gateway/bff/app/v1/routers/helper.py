@@ -3,6 +3,7 @@ import itertools
 import os
 from copy import deepcopy
 from tempfile import TemporaryDirectory
+from typing import Union
 
 import filetype
 from docarray import Document, DocumentArray
@@ -12,6 +13,8 @@ from jina.excepts import BadServer, BadServerFlow
 
 from now.constants import SUPPORTED_FILE_TYPES
 from now.utils import get_flow_id
+
+# streamer = GatewayStreamer.get_streamer()
 
 
 def field_dict_to_mm_doc(
@@ -90,7 +93,7 @@ def get_jina_client(host: str, port: int) -> Client:
 def jina_client_post(
     request_model,
     endpoint: str,
-    inputs: Document,
+    docs: Union[Document, DocumentArray],
     parameters=None,
     *args,
     **kwargs,
@@ -99,7 +102,7 @@ def jina_client_post(
 
     :param request_model: contains the request model of the flow
     :param endpoint: endpoint which shall be called, e.g. '/index' or '/search'
-    :param inputs: document(s) which shall be passed in
+    :param docs: document(s) which shall be passed in
     :param parameters: parameters to pass to the executors, e.g. jwt for securitization or limit for search
     :param args: any additional arguments passed to the `client.post` method
     :param kwargs: any additional keyword arguments passed to the `client.post` method
@@ -114,9 +117,21 @@ def jina_client_post(
     if request_model.jwt is not None:
         auth_dict['jwt'] = request_model.jwt
     try:
+        # result = await streamer.stream_docs(
+        #     exec_endpoint=endpoint,
+        #     docs=docs,
+        #     parameters={
+        #         **auth_dict,
+        #         **parameters,
+        #         'access_paths': '@cc',
+        #     },
+        #     *args,
+        #     **kwargs,
+        # )
+
         result = client.post(
             endpoint,
-            inputs=inputs,
+            inputs=docs,
             parameters={
                 **auth_dict,
                 **parameters,

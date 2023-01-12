@@ -1,11 +1,13 @@
 import os
 
 import streamlit.web.bootstrap
-from fastapi import FastAPI
 from jina import Gateway
 from streamlit.web.server import Server as StreamlitServer
 from uvicorn import Config
 from uvicorn import Server as UvicornServer
+
+from now.constants import CG_BFF_PORT
+from now.executor.gateway.bff.app.app import application
 
 cur_dir = os.path.dirname(__file__)
 
@@ -13,8 +15,7 @@ cur_dir = os.path.dirname(__file__)
 class NOWGateway(Gateway):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.streamlit_server = None
-        self.streamlit_script = 'streamlit_app.py'
+        self.streamlit_script = 'playground/playground.py'
 
     async def setup_server(self):
         streamlit.web.bootstrap._fix_sys_path(self.streamlit_script)
@@ -28,13 +29,9 @@ class NOWGateway(Gateway):
             f'"python -m streamlit" run --browser.serverPort {self.port} {self.streamlit_script}',
         )
 
-        app = FastAPI(title='My Custom Gateway')
-
-        @app.get(path='/endpoint')
-        def custom_endpoint():
-            return {'message': 'custom-gateway'}
-
-        self.uvicorn_server = UvicornServer(Config(app, host=self.host, port=self.port))
+        self.uvicorn_server = UvicornServer(
+            Config(application, host=self.host, port=CG_BFF_PORT)
+        )
 
     async def run_server(self):
         await self.streamlit_server.start()

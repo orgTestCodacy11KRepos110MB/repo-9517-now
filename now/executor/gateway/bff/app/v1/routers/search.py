@@ -5,12 +5,15 @@ from docarray import Document, dataclass, field
 from docarray.typing import Image, Text, Video
 from fastapi import APIRouter
 
-from deployment.bff.app.v1.models.search import (
+from now.executor.gateway.bff.app.v1.models.search import (
     SearchRequestModel,
     SearchResponseModel,
     SuggestionRequestModel,
 )
-from deployment.bff.app.v1.routers.helper import field_dict_to_mm_doc, jina_client_post
+from now.executor.gateway.bff.app.v1.routers.helper import (
+    field_dict_to_mm_doc,
+    jina_client_post,
+)
 
 router = APIRouter()
 
@@ -37,7 +40,7 @@ def search(data: SearchRequestModel):
 
     docs = jina_client_post(
         endpoint='/search',
-        inputs=query_doc,
+        docs=query_doc,
         parameters={
             'limit': data.limit,
             'filter': query_filter,
@@ -91,7 +94,7 @@ def suggestion(data: SuggestionRequestModel):
     suggest_doc = Document(text=data.text)
     docs = jina_client_post(
         endpoint='/suggestion',
-        inputs=suggest_doc,
+        docs=suggest_doc,
         request_model=data,
         target_executor=r'\Aautocomplete_executor\Z',
     )

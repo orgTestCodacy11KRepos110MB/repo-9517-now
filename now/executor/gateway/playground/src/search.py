@@ -8,6 +8,8 @@ from docarray import Document, DocumentArray
 from docarray.score import NamedScore
 from frozendict import frozendict
 
+from now.constants import CG_BFF_PORT
+
 from .constants import Parameters
 
 
@@ -71,11 +73,7 @@ def search(
 ):
     print(f'Searching by {attribute_name}')
     params = get_query_params()
-    if params.host == 'gateway':  # need to call now-bff as we communicate between pods
-        domain = f"http://now-bff"
-    else:
-        domain = f"https://nowrun.jina.ai"
-    URL_HOST = f"{domain}/api/v1/search-app/{endpoint}"
+    post_url = f"http://localhost:{CG_BFF_PORT}/api/v1/search-app/{endpoint}"
 
     updated_dict = {}
     if filter_dict is not None:
@@ -96,7 +94,7 @@ def search(
     if params.port:
         data['port'] = params.port
 
-    return call_flow(URL_HOST, data, domain, endpoint)
+    return post_bff(post_url, data, endpoint)
 
 
 def get_suggestion(text, jwt):
@@ -105,7 +103,7 @@ def get_suggestion(text, jwt):
 
 @deep_freeze_args
 @functools.lru_cache(maxsize=10, typed=False)
-def call_flow(url_host, data, domain, endpoint):
+def post_bff(url_host, data, endpoint):
     st.session_state.search_count += 1
     data = unfreeze_param(data)
 
