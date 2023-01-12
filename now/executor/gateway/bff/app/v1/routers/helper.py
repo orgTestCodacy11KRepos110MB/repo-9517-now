@@ -10,11 +10,10 @@ from docarray import Document, DocumentArray
 from fastapi import HTTPException, status
 from jina import Client
 from jina.excepts import BadServer, BadServerFlow
+from jina.serve.streamer import GatewayStreamer
 
 from now.constants import SUPPORTED_FILE_TYPES
 from now.utils import get_flow_id
-
-# streamer = GatewayStreamer.get_streamer()
 
 
 def field_dict_to_mm_doc(
@@ -90,7 +89,7 @@ def get_jina_client(host: str, port: int) -> Client:
         return Client(host=host, port=port)
 
 
-def jina_client_post(
+async def jina_client_post(
     request_model,
     endpoint: str,
     docs: Union[Document, DocumentArray],
@@ -108,30 +107,20 @@ def jina_client_post(
     :param kwargs: any additional keyword arguments passed to the `client.post` method
     :return: response of `client.post`
     """
+    if not isinstance(docs, DocumentArray):
+        docs = DocumentArray([docs])
+    streamer = GatewayStreamer.get_streamer()
     if parameters is None:
         parameters = {}
-    client = get_jina_client(host=request_model.host, port=request_model.port)
     auth_dict = {}
     if request_model.api_key is not None:
         auth_dict['api_key'] = request_model.api_key
     if request_model.jwt is not None:
         auth_dict['jwt'] = request_model.jwt
     try:
-        # result = await streamer.stream_docs(
-        #     exec_endpoint=endpoint,
-        #     docs=docs,
-        #     parameters={
-        #         **auth_dict,
-        #         **parameters,
-        #         'access_paths': '@cc',
-        #     },
-        #     *args,
-        #     **kwargs,
-        # )
-
-        result = client.post(
-            endpoint,
-            inputs=docs,
+        async for docs in streamer.stream_docs(
+            exec_endpoint=endpoint,
+            docs=docs,
             parameters={
                 **auth_dict,
                 **parameters,
@@ -139,11 +128,11 @@ def jina_client_post(
             },
             *args,
             **kwargs,
-        )
+        ):
+            return docs
     except (BadServer, BadServerFlow) as e:
         flow_id = get_flow_id(request_model.host)
         raise handle_exception(e, flow_id)
-    return result
 
 
 def handle_exception(e, flow_id):

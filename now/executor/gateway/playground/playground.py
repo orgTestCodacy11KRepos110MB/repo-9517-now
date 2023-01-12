@@ -14,14 +14,6 @@ import streamlit.components.v1 as components
 from better_profanity import profanity
 from docarray import Document, DocumentArray
 from jina import Client
-from src.constants import (  # RTC_CONFIGURATION,
-    BUTTONS,
-    S3_DEMO_PATH,
-    SSO_COOKIE,
-    SURVEY_LINK,
-    ds_set,
-)
-from src.search import get_query_params, search_by_image, search_by_text
 from streamlit.runtime.scriptrunner import add_script_run_ctx
 
 # from streamlit.scriptrunner import add_script_run_ctx
@@ -29,6 +21,19 @@ from streamlit.web.server.server import Server
 
 # from streamlit_webrtc import WebRtcMode, webrtc_streamer
 from tornado.httputil import parse_cookie
+
+from now.executor.gateway.playground.src.constants import (
+    BUTTONS,
+    S3_DEMO_PATH,
+    SSO_COOKIE,
+    SURVEY_LINK,
+    ds_set,
+)
+from now.executor.gateway.playground.src.search import (
+    get_query_params,
+    search_by_image,
+    search_by_text,
+)
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -154,9 +159,6 @@ def deploy_streamlit():
 
         elif media_type == 'Text':
             render_text(da_txt, deepcopy(filter_selection))
-
-        # elif media_type == 'Webcam':
-        #     render_webcam(deepcopy(filter_selection))
 
         render_matches()
 
@@ -442,43 +444,6 @@ def render_text_result(match, c):
         )
     except:
         pass
-
-
-# def render_webcam(filter_selection):
-#     snapshot = st.button('Snapshot', on_click=clear_match)
-#
-#     class VideoProcessor:
-#         def __init__(self) -> None:
-#             self.img = None
-#
-#         def recv(self, frame):
-#             self.img = frame.to_ndarray(format='rgb24')
-#
-#             return av.VideoFrame.from_ndarray(self.img, format='rgb24')
-#
-#     ctx = webrtc_streamer(
-#         key='jina-now',
-#         mode=WebRtcMode.SENDRECV,
-#         rtc_configuration=RTC_CONFIGURATION,
-#         media_stream_constraints={'video': True, 'audio': False},
-#         video_processor_factory=VideoProcessor,
-#     )
-#     if ctx.state.playing:
-#         if snapshot:
-#             query = ctx.video_processor.img
-#             st.image(query, width=160)
-#             st.session_state.snap = query
-#             doc = Document(tensor=query)
-#             doc.convert_image_tensor_to_blob()
-#             st.session_state.matches = search_by_image(
-#                 document=doc,
-#                 jwt=st.session_state.jwt_val,
-#                 filter_selection=filter_selection,
-#             )
-#         elif st.session_state.snap is not None:
-#             st.image(st.session_state.snap, width=160)
-#     else:
-#         clear_match()
 
 
 def add_social_share_buttons():

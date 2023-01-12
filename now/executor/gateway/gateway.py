@@ -1,7 +1,11 @@
+import copy
 import os
 
 import streamlit.web.bootstrap
-from jina import Gateway
+from docarray import Document, DocumentArray, dataclass
+from docarray.typing import Text
+from jina import Executor, Gateway, requests
+from jina.serve.runtimes.gateway import CompositeGateway
 from streamlit.web.server import Server as StreamlitServer
 from uvicorn import Config
 from uvicorn import Server as UvicornServer
@@ -12,7 +16,7 @@ from now.executor.gateway.bff.app.app import application
 cur_dir = os.path.dirname(__file__)
 
 
-class NOWGateway(Gateway):
+class PlaygroundGateway(Gateway):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.streamlit_script = 'playground/playground.py'
@@ -26,36 +30,95 @@ class NOWGateway(Gateway):
         streamlit.web.bootstrap._install_pages_watcher(self.streamlit_script)
         self.streamlit_server = StreamlitServer(
             os.path.join(cur_dir, self.streamlit_script),
-            f'"python -m streamlit" run --browser.serverPort {self.port} {self.streamlit_script}',
-        )
-
-        self.uvicorn_server = UvicornServer(
-            Config(application, host=self.host, port=CG_BFF_PORT)
+            f'"python -m streamlit" run --browser.serverPort 12983 {self.streamlit_script}',
         )
 
     async def run_server(self):
         await self.streamlit_server.start()
         streamlit.web.bootstrap._on_server_start(self.streamlit_server)
         streamlit.web.bootstrap._set_up_signal_handler(self.streamlit_server)
-        await self.uvicorn_server.serve()
-
-        await self.streamlit_server.stopped
+        # await self.streamlit_server.stopped       # this line prevents BFFGateway to start after it
+        # print('Streamlit server stopped after await.')
 
     async def shutdown(self):
         self.streamlit_server.stop()
 
+
+class BFFGateway(Gateway):
+    async def setup_server(self):
+        self.uvicorn_server = UvicornServer(
+            Config(application, host=self.host, port=CG_BFF_PORT)
+        )
+
+    async def run_server(self):
+        await self.uvicorn_server.serve()
+
+    async def shutdown(self):
         self.uvicorn_server.should_exit = True
         await self.uvicorn_server.shutdown()
+
+
+class NOWGateway(CompositeGateway):
+    def __init__(self, playground_port=8501, bff_port=CG_BFF_PORT, **kwargs):
+        super().__init__(**kwargs)
+
+        # note order is important
+        self._add_gateway(BFFGateway, bff_port, **kwargs)
+        self._add_gateway(PlaygroundGateway, playground_port, **kwargs)
+
+    def _add_gateway(self, gateway_cls, port, protocol='http', **kwargs):
+        runtime_args = copy.deepcopy(self.runtime_args)
+        # runtime_args.port = [port]
+        # runtime_args.protocol = [protocol]
+        gateway_kwargs = copy.deepcopy(kwargs)
+        gateway_kwargs['runtime_args'] = dict(vars(runtime_args))
+        gateway = gateway_cls(**gateway_kwargs)
+        self.gateways.insert(0, gateway)
 
 
 if __name__ == '__main__':
     from jina import Flow
 
-    flow = Flow().config_gateway(
-        uses=NOWGateway,
-        port=12345,
-        protocol='http',
+    @dataclass
+    class MMResult:
+        title: Text
+        desc: Text
+
+    class DummyEncoder(Executor):
+        @requests
+        def foo(self, docs: DocumentArray, **kwargs):
+            for index, doc in enumerate(docs):
+                doc.matches = DocumentArray(
+                    [
+                        Document(
+                            MMResult(
+                                title=f'test title {index}: {i}',
+                                desc=f'test desc {index}: {i}',
+                            )
+                        )
+                        for i in range(10)
+                    ]
+                )
+            return docs
+
+    f = (
+        Flow()
+        .config_gateway(
+            uses=NOWGateway,
+            protocol=['grpc'],
+        )
+        .add(uses=DummyEncoder, name='encoder')
     )
 
-    with flow:
-        flow.block()
+    with f:
+        f.block()
+    #     print('start')
+    #     result = f.post(
+    #         on='/search',
+    #         inputs=Document(text='test')
+    #     )
+    #     result.summary()
+    #     result[0].matches.summary()
+    #     result[0].matches[0].summary()
+    #
+    # print('done')

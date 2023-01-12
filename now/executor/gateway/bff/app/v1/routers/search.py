@@ -23,7 +23,7 @@ router = APIRouter()
     response_model=List[SearchResponseModel],
     summary='Search data via query',
 )
-def search(data: SearchRequestModel):
+async def search(data: SearchRequestModel):
     # temporary class until actual mm docs are created.
     @dataclass
     class MMQueryDoc:
@@ -38,7 +38,7 @@ def search(data: SearchRequestModel):
         key = 'tags__' + key if not key.startswith('tags__') else key
         query_filter[key] = {'$eq': value}
 
-    docs = jina_client_post(
+    docs = await jina_client_post(
         endpoint='/search',
         docs=query_doc,
         parameters={
@@ -50,21 +50,16 @@ def search(data: SearchRequestModel):
     )
     matches = []
     for doc in docs[0].matches:
+        doc.summary()
         # todo: use multimodal doc in the future
         scores = {}
         for score_name, named_score in doc.scores.items():
             scores[score_name] = named_score.to_dict()
-        # since multimodal doc is not supported, we take the first chunk
-        if doc.chunks:
-            field_names = doc._metadata['multi_modal_schema'].keys()
-            field_names_and_chunks = [
-                [field_name, getattr(doc, field_name)] for field_name in field_names
-            ]
-        else:
-            # TODO remove else path. It is only used to support the inmemory indexer since that one is operating on chunks while elastic responds with root documents
-            field_names_and_chunks = [['result_field', doc]]
+        field_names = doc._metadata['multi_modal_schema'].keys()
+        field_names_and_chunks = [
+            [field_name, getattr(doc, field_name)] for field_name in field_names
+        ]
         results = {}
-
         for field_name, chunk in field_names_and_chunks:
             if chunk.blob:
                 result = {'blob': base64.b64encode(chunk.blob).decode('utf-8')}
@@ -90,9 +85,9 @@ def search(data: SearchRequestModel):
     "/suggestion",
     summary='Get auto complete suggestion for query',
 )
-def suggestion(data: SuggestionRequestModel):
+async def suggestion(data: SuggestionRequestModel):
     suggest_doc = Document(text=data.text)
-    docs = jina_client_post(
+    docs = await jina_client_post(
         endpoint='/suggestion',
         docs=suggest_doc,
         request_model=data,

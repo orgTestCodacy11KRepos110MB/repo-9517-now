@@ -15,11 +15,11 @@ router = APIRouter()
     "/updateUserEmails",
     summary='update user emails during runtime',
 )
-def update_user_email(data: UpdateEmailsRequestModel):
+async def update_user_email(data: UpdateEmailsRequestModel):
     """
     Update the list of emails for the security executor
     """
-    jina_client_post(
+    await jina_client_post(
         request_model=data,
         docs=[Document()],
         endpoint='/admin/updateUserEmails',
@@ -31,11 +31,11 @@ def update_user_email(data: UpdateEmailsRequestModel):
     "/updateApiKeys",
     summary='update api keys during runtime',
 )
-def update_api_keys(data: UpdateApiKeysRequestModel):
+async def update_api_keys(data: UpdateApiKeysRequestModel):
     """
     Update the list of api keys for the security executor
     """
-    jina_client_post(
+    await jina_client_post(
         request_model=data,
         docs=[Document()],
         endpoint='/admin/updateApiKeys',
@@ -47,12 +47,12 @@ def update_api_keys(data: UpdateApiKeysRequestModel):
     "/getStatus",
     summary='Get status of the flow during runtime',
 )
-def get_host_status(data: BaseRequestModel):
+async def get_host_status(data: BaseRequestModel):
     """
     Get the status of the host in the request body
     """
     try:
-        jina_client_post(
+        await jina_client_post(
             request_model=data,
             docs=[Document()],
             endpoint='/dry_run',

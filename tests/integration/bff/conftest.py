@@ -1,12 +1,9 @@
-from multiprocessing import Process
-
-import pytest
 from docarray import Document, DocumentArray, dataclass
 from docarray.typing import Text
 from jina import Flow
 
-from deployment.bff.app.app import run_server
 from now.constants import ACCESS_PATHS, EXTERNAL_CLIP_HOST
+from now.executor.gateway.gateway import NOWGateway
 from now.executor.indexer.elastic import NOWElasticIndexer
 from now.executor.preprocessor import NOWPreprocessor
 
@@ -14,15 +11,6 @@ BASE_URL = 'http://localhost:8080/api/v1'
 SEARCH_URL = f'{BASE_URL}/search-app/search'
 HOST = 'grpc://0.0.0.0'
 PORT = 9089
-
-
-@pytest.fixture()
-def start_bff():
-    p1 = Process(target=run_server, args=(8080,))
-    p1.daemon = True
-    p1.start()
-    yield
-    p1.terminate()
 
 
 def index_data(f, **kwargs):
@@ -55,6 +43,10 @@ def get_flow(preprocessor_args=None, indexer_args=None, tmpdir=None):
     metas = {'workspace': str(tmpdir)}
     f = (
         Flow(port_expose=9089)
+        .config_gateway(
+            uses=NOWGateway,
+            protocol=['grpc'],
+        )
         .add(
             uses=NOWPreprocessor,
             uses_with=preprocessor_args,
