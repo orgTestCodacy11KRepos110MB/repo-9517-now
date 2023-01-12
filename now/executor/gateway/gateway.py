@@ -6,9 +6,9 @@ from docarray import Document, DocumentArray, dataclass
 from docarray.typing import Text
 from jina import Executor, Gateway, requests
 from jina.serve.runtimes.gateway import CompositeGateway
+from jina.serve.runtimes.gateway.http.fastapi import FastAPIBaseGateway
+from jina.serve.runtimes.gateway.http.models import JinaHealthModel
 from streamlit.web.server import Server as StreamlitServer
-from uvicorn import Config
-from uvicorn import Server as UvicornServer
 
 from now.constants import CG_BFF_PORT
 from now.executor.gateway.bff.app.app import application
@@ -37,25 +37,20 @@ class PlaygroundGateway(Gateway):
         await self.streamlit_server.start()
         streamlit.web.bootstrap._on_server_start(self.streamlit_server)
         streamlit.web.bootstrap._set_up_signal_handler(self.streamlit_server)
-        # await self.streamlit_server.stopped       # this line prevents BFFGateway to start after it
-        # print('Streamlit server stopped after await.')
 
     async def shutdown(self):
         self.streamlit_server.stop()
 
 
-class BFFGateway(Gateway):
-    async def setup_server(self):
-        self.uvicorn_server = UvicornServer(
-            Config(application, host=self.host, port=CG_BFF_PORT)
+class BFFGateway(FastAPIBaseGateway):
+    @property
+    def app(self):
+        # fix to use starlette instead of FastAPI app (throws warning that "/" is used for health checks
+        application.add_route(
+            path='/', route=lambda: JinaHealthModel(), methods=['GET']
         )
 
-    async def run_server(self):
-        await self.uvicorn_server.serve()
-
-    async def shutdown(self):
-        self.uvicorn_server.should_exit = True
-        await self.uvicorn_server.shutdown()
+        return application
 
 
 class NOWGateway(CompositeGateway):
@@ -68,12 +63,12 @@ class NOWGateway(CompositeGateway):
 
     def _add_gateway(self, gateway_cls, port, protocol='http', **kwargs):
         runtime_args = copy.deepcopy(self.runtime_args)
-        # runtime_args.port = [port]
+        runtime_args.port = [port]
         # runtime_args.protocol = [protocol]
         gateway_kwargs = copy.deepcopy(kwargs)
         gateway_kwargs['runtime_args'] = dict(vars(runtime_args))
         gateway = gateway_cls(**gateway_kwargs)
-        self.gateways.insert(0, gateway)
+        self.gateways.append(gateway)
 
 
 if __name__ == '__main__':
