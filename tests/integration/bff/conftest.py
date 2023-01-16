@@ -45,7 +45,7 @@ def get_flow(preprocessor_args=None, indexer_args=None, tmpdir=None):
         Flow(port_expose=9089)
         .config_gateway(
             uses=NOWGateway,
-            protocol=['grpc'],
+            protocol=['http'],
         )
         .add(
             uses=NOWPreprocessor,

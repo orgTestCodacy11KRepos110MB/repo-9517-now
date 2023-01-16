@@ -64,11 +64,11 @@ class NOWGateway(CompositeGateway):
     def _add_gateway(self, gateway_cls, port, protocol='http', **kwargs):
         runtime_args = copy.deepcopy(self.runtime_args)
         runtime_args.port = [port]
-        # runtime_args.protocol = [protocol]
+        runtime_args.protocol = [protocol]
         gateway_kwargs = copy.deepcopy(kwargs)
         gateway_kwargs['runtime_args'] = dict(vars(runtime_args))
         gateway = gateway_cls(**gateway_kwargs)
-        self.gateways.append(gateway)
+        self.gateways.insert(0, gateway)
 
 
 if __name__ == '__main__':
@@ -100,7 +100,7 @@ if __name__ == '__main__':
         Flow()
         .config_gateway(
             uses=NOWGateway,
-            protocol=['grpc'],
+            protocol=['http'],
         )
         .add(uses=DummyEncoder, name='encoder')
     )

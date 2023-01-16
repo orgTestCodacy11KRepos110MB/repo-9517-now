@@ -21,7 +21,7 @@ async def update_user_email(data: UpdateEmailsRequestModel):
     """
     await jina_client_post(
         request_model=data,
-        docs=[Document()],
+        docs=Document(),
         endpoint='/admin/updateUserEmails',
         parameters={'user_emails': data.user_emails},
     )
@@ -37,7 +37,7 @@ async def update_api_keys(data: UpdateApiKeysRequestModel):
     """
     await jina_client_post(
         request_model=data,
-        docs=[Document()],
+        docs=Document(),
         endpoint='/admin/updateApiKeys',
         parameters={'api_keys': data.api_keys},
     )
@@ -54,7 +54,7 @@ async def get_host_status(data: BaseRequestModel):
     try:
         await jina_client_post(
             request_model=data,
-            docs=[Document()],
+            docs=Document(),
             endpoint='/dry_run',
         )
     except Exception as e:
