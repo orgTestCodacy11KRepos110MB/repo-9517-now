@@ -1,4 +1,6 @@
 jtype: Flow
+with:
+  name: nowapi
 jcloud:
   version: ${{ ENV.JINA_VERSION }}
   custom_dns:
@@ -7,7 +9,6 @@ jcloud:
     team: now
 gateway:
   protocol: grpc
-  name: nowapi
   monitoring: true
   port_expose: 8080
   prefetch: 10
