@@ -9,7 +9,7 @@ jcloud:
     team: now
 gateway:
   protocol: [grpc]
-  monitoring: true
+#  monitoring: true
   port_expose: 8080
   prefetch: 10
   cors: true
