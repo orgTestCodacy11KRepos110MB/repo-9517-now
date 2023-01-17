@@ -15,8 +15,6 @@ from better_profanity import profanity
 from docarray import Document, DocumentArray
 from jina import Client
 from streamlit.runtime.scriptrunner import add_script_run_ctx
-from streamlit.scriptrunner import add_script_run_ctx
-from streamlit.server.server import Server
 
 # from streamlit.scriptrunner import add_script_run_ctx
 from streamlit.web.server.server import Server
@@ -36,6 +34,10 @@ from now.executor.gateway.playground.src.search import (
     search_by_image,
     search_by_text,
 )
+
+# from streamlit.scriptrunner import add_script_run_ctx
+# from streamlit.web.server.server import Server
+
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
