@@ -8,7 +8,7 @@ from jina import __version__ as jina_version
 from jina.jaml import JAML
 
 from now.app.base.preprocess import preprocess_image, preprocess_text, preprocess_video
-from now.constants import DEFAULT_FLOW_NAME, PREFETCH_NR
+from now.constants import DEFAULT_FLOW_NAME, NOW_GATEWAY_VERSION, PREFETCH_NR
 from now.demo_data import DEFAULT_EXAMPLE_HOSTED, DemoDataset
 from now.now_dataclasses import DialogOptions, UserInput
 
@@ -194,6 +194,10 @@ class JinaNOWApp:
                 and user_input.flow_name != DEFAULT_FLOW_NAME
                 else DEFAULT_FLOW_NAME
             )
+            # update gateway version
+            flow_yaml_content['gateway'][
+                'uses'
+            ] = f'jinahub+docker://2m00g87k/{NOW_GATEWAY_VERSION}'
             # Call the executor stubs function to get the executors for the flow
             flow_yaml_content['executors'] = self.get_executor_stubs(
                 dataset, user_input

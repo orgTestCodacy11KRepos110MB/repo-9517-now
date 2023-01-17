@@ -7,9 +7,9 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Column, Table
 
-from now import run_backend, run_bff_playground
+from now import run_backend
 from now.cloud_manager import setup_cluster
-from now.constants import DOCKER_BFF_PLAYGROUND_TAG, FLOW_STATUS, DatasetTypes
+from now.constants import FLOW_STATUS, DatasetTypes
 from now.deployment.deployment import cmd, list_all_wolf, status_wolf, terminate_wolf
 from now.dialog import configure_user_input
 from now.log import yaspin_extended
@@ -119,13 +119,13 @@ def start_now(**kwargs):
         bff_playground_host = 'http://localhost'
         bff_port = '9090'
         playground_port = '80'
-    elif gateway_host == 'localhost' or 'NOW_CI_RUN' in os.environ:
-        # only deploy playground when running locally or when testing
-        bff_playground_host, bff_port, playground_port = run_bff_playground.run(
-            gateway_host=gateway_host,
-            docker_bff_playground_tag=DOCKER_BFF_PLAYGROUND_TAG,
-            kubectl_path=kwargs['kubectl_path'],
-        )
+    # elif gateway_host == 'localhost' or 'NOW_CI_RUN' in os.environ:
+    #     # only deploy playground when running locally or when testing
+    #     bff_playground_host, bff_port, playground_port = run_bff_playground.run(
+    #         gateway_host=gateway_host,
+    #         docker_bff_playground_tag=NOW_GATEWAY_VERSION,
+    #         kubectl_path=kwargs['kubectl_path'],
+    #     )
     else:
         bff_playground_host = 'https://nowrun.jina.ai'
         bff_port = '80'
@@ -137,13 +137,12 @@ def start_now(**kwargs):
         + f'/api/v1/search-app/docs'
     )
     playground_url = (
-        bff_playground_host
+        gateway_host
         + ('' if str(playground_port) == '80' else f':{playground_port}')
         + (
-            f'/?host='
-            + (gateway_host_internal if gateway_host != 'localhost' else 'gateway')
+            f'/?'
             + (
-                f'&data={user_input.dataset_name if user_input.dataset_type == DatasetTypes.DEMO else "custom"}'
+                f'data={user_input.dataset_name if user_input.dataset_type == DatasetTypes.DEMO else "custom"}'
             )
             + (f'&secured={user_input.secured}' if user_input.secured else '')
         )
