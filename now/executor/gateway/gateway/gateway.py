@@ -27,7 +27,7 @@ class PlaygroundGateway(Gateway):
         streamlit.web.bootstrap._fix_tornado_crash()
         streamlit.web.bootstrap._fix_sys_argv(self.streamlit_script, ())
         streamlit.web.bootstrap._fix_pydeck_mapbox_api_warning()
-        streamlit.web.bootstrap._install_pages_watcher(self.streamlit_script)
+        # streamlit.web.bootstrap._install_pages_watcher(self.streamlit_script)
         self.streamlit_server = StreamlitServer(
             os.path.join(cur_dir, self.streamlit_script),
             f'"python -m streamlit" run --browser.serverPort 12983 {self.streamlit_script}',
