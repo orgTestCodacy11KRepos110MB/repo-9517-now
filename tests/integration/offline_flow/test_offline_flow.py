@@ -5,8 +5,8 @@ from docarray import Document, DocumentArray, dataclass
 from docarray.typing import Image, Text
 from tests.integration.offline_flow.flow import OfflineFlow
 
-from deployment.bff.app.v1.models.search import SearchRequestModel
-from deployment.bff.app.v1.routers.search import search
+from now.executor.gateway.gateway.bff.app.v1.models.search import SearchRequestModel
+from now.executor.gateway.gateway.bff.app.v1.routers.search import search
 from now.now_dataclasses import UserInput
 
 

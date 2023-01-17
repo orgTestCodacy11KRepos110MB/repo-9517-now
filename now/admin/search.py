@@ -1,7 +1,6 @@
 import requests
 from docarray import Document
-
-from deployment.bff.app.v1.routers.helper import jina_client_post
+from jina import Client
 
 API_KEY = 'my_key'
 
@@ -15,9 +14,7 @@ direct = False
 
 if direct:
     # directly requesting the jina gateway
-    result = jina_client_post(
-        host,
-        -1,
+    result = Client(host=host).post(
         '/search',
         Document(chunks=Document(text='girl on motorbike')),
         {'api_key': API_KEY},

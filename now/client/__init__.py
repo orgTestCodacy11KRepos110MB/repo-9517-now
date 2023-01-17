@@ -5,13 +5,16 @@ import requests
 from jina.serve.runtimes.gateway.http.models import JinaResponseModel
 from pydantic import BaseModel, parse_obj_as
 
-from deployment.bff.app.v1.models.search import (
+from now.common.options import construct_app
+from now.executor.gateway.gateway.bff.app.v1.models.search import (
     IndexRequestModel,
     SearchRequestModel,
     SearchResponseModel,
 )
-from deployment.bff.app.v1.routers.helper import field_dict_to_mm_doc, jina_client_post
-from now.common.options import construct_app
+from now.executor.gateway.gateway.bff.app.v1.routers.helper import (
+    field_dict_to_mm_doc,
+    jina_client_post,
+)
 
 
 class Client:

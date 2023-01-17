@@ -4,7 +4,11 @@ import time
 import pytest
 from fastapi import HTTPException
 
-from deployment.bff.app.decorators import api_method, async_timed, timed
+from now.executor.gateway.gateway.bff.app.decorators import (
+    api_method,
+    async_timed,
+    timed,
+)
 
 
 def test_timed():
