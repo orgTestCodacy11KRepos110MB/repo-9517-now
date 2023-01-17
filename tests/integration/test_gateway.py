@@ -1,13 +1,19 @@
 import os
 
+import pytest
 from docarray import Document, DocumentArray, dataclass
 from docarray.typing import Text
-from jina import Executor, Flow
+from jina import Executor, Flow, requests
 
 from now.constants import NOW_GATEWAY_VERSION
+from now.executor.gateway.gateway import NOWGateway
 
 
-def test_gateway_jinahub():
+# parameterize this
+@pytest.mark.parametrize(
+    'gateway_uses', [f'jinahub+docker://2m00g87k/{NOW_GATEWAY_VERSION}', NOWGateway]
+)
+def test_gateway_flow_with(gateway_uses):
     os.environ['JINA_LOG_LEVEL'] = 'DEBUG'
 
     @dataclass
@@ -35,7 +41,7 @@ def test_gateway_jinahub():
     f = (
         Flow()
         .config_gateway(
-            uses=f'jinahub+docker://2m00g87k/{NOW_GATEWAY_VERSION}',
+            uses=gateway_uses,
             protocol=['grpc'],
         )
         .add(uses=DummyEncoder, name='encoder')
