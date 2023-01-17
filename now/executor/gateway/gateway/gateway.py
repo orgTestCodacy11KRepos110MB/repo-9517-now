@@ -11,7 +11,7 @@ from jina.serve.runtimes.gateway.http.models import JinaHealthModel
 from streamlit.web.server import Server as StreamlitServer
 
 from now.constants import CG_BFF_PORT
-from now.executor.gateway.bff.app.app import application
+from now.executor.gateway.gateway.bff.app.app import application
 
 cur_dir = os.path.dirname(__file__)
 

@@ -15,3 +15,10 @@ better_profanity==0.7.0
 paddlepaddle==2.4.0rc0
 paddleocr>=2.0.1
 filetype
+streamlit==1.16.0
+extra-streamlit-components==0.1.55
+click==8.0.0
+fastapi==0.78.0
+uvicorn==0.17.6
+uvloop==0.16.0
+pydantic==1.8.2

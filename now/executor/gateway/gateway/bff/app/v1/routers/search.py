@@ -5,12 +5,12 @@ from docarray import Document, dataclass, field
 from docarray.typing import Image, Text, Video
 from fastapi import APIRouter
 
-from now.executor.gateway.bff.app.v1.models.search import (
+from now.executor.gateway.gateway.bff.app.v1.models.search import (
     SearchRequestModel,
     SearchResponseModel,
     SuggestionRequestModel,
 )
-from now.executor.gateway.bff.app.v1.routers.helper import (
+from now.executor.gateway.gateway.bff.app.v1.routers.helper import (
     field_dict_to_mm_doc,
     jina_client_post,
 )

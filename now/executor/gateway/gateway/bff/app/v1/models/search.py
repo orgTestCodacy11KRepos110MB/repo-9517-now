@@ -2,7 +2,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 from pydantic import BaseModel, Field
 
-from now.executor.gateway.bff.app.v1.models.shared import (
+from now.executor.gateway.gateway.bff.app.v1.models.shared import (
     BaseRequestModel,
     ModalityModel,
 )
