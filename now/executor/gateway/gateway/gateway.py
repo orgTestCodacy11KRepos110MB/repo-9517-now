@@ -74,6 +74,8 @@ class NOWGateway(CompositeGateway):
 if __name__ == '__main__':
     from jina import Flow
 
+    os.environ['JINA_LOG_LEVEL'] = 'DEBUG'
+
     @dataclass
     class MMResult:
         title: Text
