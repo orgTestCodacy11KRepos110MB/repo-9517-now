@@ -7,6 +7,11 @@ with:
   cors: true
   env:
     JINA_LOG_LEVEL: DEBUG
+gateway:
+  uses: jinahub+docker://q4x2gadu/latest
+  protocol: grpc
+  env:
+    JINA_LOG_LEVEL: DEBUG
 jcloud:
   version: ${{ ENV.JINA_VERSION }}
   custom_dns:
