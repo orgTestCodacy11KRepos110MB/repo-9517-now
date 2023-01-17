@@ -8,7 +8,6 @@ from typing import Union
 import filetype
 from docarray import Document, DocumentArray
 from fastapi import HTTPException, status
-from jina import Client
 from jina.excepts import BadServer, BadServerFlow
 from jina.serve.streamer import GatewayStreamer
 
@@ -80,13 +79,6 @@ def field_dict_to_mm_doc(
             )
 
     return doc
-
-
-def get_jina_client(host: str, port: int) -> Client:
-    if 'wolf.jina.ai' in host or 'dev.jina.ai' in host:
-        return Client(host=host)
-    else:
-        return Client(host=host, port=port)
 
 
 async def jina_client_post(

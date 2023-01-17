@@ -2,7 +2,8 @@ import base64
 import os
 
 import pytest
-from docarray import Document, DocumentArray
+from docarray import Document, DocumentArray, dataclass
+from docarray.typing import Text
 
 
 @pytest.fixture
@@ -31,7 +32,11 @@ def sample_search_response_image() -> DocumentArray:
 
 @pytest.fixture
 def sample_search_response_text() -> DocumentArray:
+    @dataclass
+    class MMDoc:
+        title: Text
+
     result = DocumentArray([Document()])
-    matches = DocumentArray([Document(text='match')])
+    matches = DocumentArray([Document(MMDoc(title='match'))])
     result[0].matches = matches
     return result

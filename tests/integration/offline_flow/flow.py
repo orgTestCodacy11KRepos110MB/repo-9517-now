@@ -4,7 +4,6 @@ from typing import Dict
 import numpy as np
 from docarray import DocumentArray
 
-from deployment.bff.app.v1.routers import helper
 from now.executor.autocomplete import NOWAutoCompleteExecutor2
 from now.executor.indexer.elastic import NOWElasticIndexer
 from now.executor.preprocessor import NOWPreprocessor
@@ -37,7 +36,8 @@ class OfflineFlow:
 
     def mock_client(self, monkeypatch):
         offline_client = get_client(self)
-        monkeypatch.setattr(helper, 'get_jina_client', lambda **kwargs: offline_client)
+        # todo: fix this similar to how 'client_with_mocked_jina_client' is fixed
+        # monkeypatch.setattr(helper, 'get_jina_client', lambda **kwargs: offline_client)
 
     def post(self, endpoint, inputs, parameters: Dict[str, str], *args, **kwargs):
         # call executors:

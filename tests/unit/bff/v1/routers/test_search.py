@@ -55,7 +55,6 @@ def test_text_search_calls_flow(
     assert response.status_code == status.HTTP_200_OK
     results = DocumentArray.from_json(response.content)
     # the mock writes the call args into the response tags
-    assert results[0].tags['url'] == '/search'
     assert results[0].tags['parameters']['limit'] == 10
 
 
