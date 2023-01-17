@@ -5,6 +5,7 @@ from docarray import Document, DocumentArray
 from jina import Flow
 
 from now.constants import TAG_OCR_DETECTOR_TEXT_IN_DOC
+from now.executor.gateway.gateway import NOWGateway
 from now.executor.preprocessor import NOWPreprocessor
 
 
@@ -25,7 +26,10 @@ def test_search_app(resources_folder_path, endpoint, tmpdir):
         ]
     )
 
-    with Flow().add(uses=NOWPreprocessor, uses_metas=metas) as f:
+    with Flow().config_gateway(
+        uses=NOWGateway,
+        protocol=['grpc'],
+    ).add(uses=NOWPreprocessor, uses_metas=metas) as f:
         result = f.post(
             on=f'/{endpoint}',
             inputs=text_docs,

@@ -5,6 +5,7 @@ from docarray import Document
 from jina import Executor, Flow, requests
 
 from now.executor.abstract.auth.auth import get_auth_executor_class
+from now.executor.gateway.gateway import NOWGateway
 
 
 @pytest.fixture
@@ -34,6 +35,10 @@ class SecondExecutor(Executor):
 def test_authorization_success_api_key(auth_executor, admin_email):
     with (
         Flow()
+        .config_gateway(
+            uses=NOWGateway,
+            protocol=['grpc'],
+        )
         .add(
             uses=auth_executor,
             uses_with={
@@ -49,6 +54,10 @@ def test_authorization_success_api_key(auth_executor, admin_email):
 def test_authorization_failed(auth_executor, admin_email):
     with (
         Flow()
+        .config_gateway(
+            uses=NOWGateway,
+            protocol=['grpc'],
+        )
         .add(
             uses=auth_executor,
             uses_with={'admin_emails': [admin_email]},
@@ -65,6 +74,10 @@ def test_authorization_failed(auth_executor, admin_email):
 def test_authorization_successful(auth_executor, admin_email, mock_hubble_admin_email):
     with (
         Flow()
+        .config_gateway(
+            uses=NOWGateway,
+            protocol=['grpc'],
+        )
         .add(
             uses=auth_executor,
             uses_with={'admin_emails': [admin_email]},
@@ -86,6 +99,10 @@ def test_authorization_success_domain_users(
 ):
     with (
         Flow()
+        .config_gateway(
+            uses=NOWGateway,
+            protocol=['grpc'],
+        )
         .add(
             uses=auth_executor,
             uses_with={'user_emails': ['test.ai']},
@@ -105,6 +122,10 @@ def test_authorization_success_domain_users(
 def test_authorization_success_jina_users(auth_executor, mock_hubble_user_email):
     with (
         Flow()
+        .config_gateway(
+            uses=NOWGateway,
+            protocol=['grpc'],
+        )
         .add(
             uses=auth_executor,
             uses_with={'admin_emails': ['test.ai']},
@@ -126,6 +147,10 @@ def test_authorization_failed_domain_users(
 ):
     with (
         Flow()
+        .config_gateway(
+            uses=NOWGateway,
+            protocol=['grpc'],
+        )
         .add(
             uses=auth_executor,
             uses_with={'user_emails': ['hello.ai']},
@@ -146,6 +171,10 @@ def test_authorization_failed_domain_users(
 def test_authorization_failed_api_key(auth_executor, admin_email):
     with (
         Flow()
+        .config_gateway(
+            uses=NOWGateway,
+            protocol=['grpc'],
+        )
         .add(
             uses=auth_executor,
             uses_with={'admin_emails': [admin_email]},

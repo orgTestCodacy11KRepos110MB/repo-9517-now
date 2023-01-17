@@ -100,7 +100,7 @@ if __name__ == '__main__':
         Flow()
         .config_gateway(
             uses=NOWGateway,
-            protocol=['http'],
+            protocol=['grpc'],
         )
         .add(uses=DummyEncoder, name='encoder')
     )

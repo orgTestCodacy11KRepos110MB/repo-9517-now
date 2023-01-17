@@ -7,6 +7,7 @@ from docarray.typing import Text
 from jina import Document, DocumentArray, Executor, Flow, requests
 
 from now.constants import TAG_OCR_DETECTOR_TEXT_IN_DOC
+from now.executor.gateway.gateway import NOWGateway
 from now.executor.indexer.elastic import NOWElasticIndexer
 from now.executor.preprocessor import NOWPreprocessor
 
@@ -30,6 +31,10 @@ class DummyEncoder(Executor):
 def flow(random_index_name, metas):
     f = (
         Flow()
+        .config_gateway(
+            uses=NOWGateway,
+            protocol=['grpc'],
+        )
         .add(
             uses=NOWPreprocessor,
             uses_metas=metas,
@@ -325,7 +330,7 @@ class TestElasticIndexer:
         self, metas, documents, setup_service_running, query, embedding, res_ids
     ):
         documents = DocumentArray([Document(chunks=[doc]) for doc in documents])
-        with Flow().add(
+        with Flow().config_gateway(uses=NOWGateway, protocol=['grpc'],).add(
             uses=NOWElasticIndexer,
             uses_with={
                 "dim": len(embedding),
