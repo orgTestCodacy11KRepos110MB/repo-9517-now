@@ -9,19 +9,19 @@ from rich.table import Column, Table
 
 from now import run_backend, run_bff_playground
 from now.cloud_manager import setup_cluster
-from now.constants import DOCKER_BFF_PLAYGROUND_TAG, DatasetTypes
+from now.constants import DOCKER_BFF_PLAYGROUND_TAG, FLOW_STATUS, DatasetTypes
 from now.deployment.deployment import cmd, list_all_wolf, status_wolf, terminate_wolf
 from now.dialog import configure_user_input
 from now.log import yaspin_extended
-from now.utils import _get_context_names, get_flow_id, maybe_prompt_user, sigmap
+from now.utils import _get_context_names, maybe_prompt_user, sigmap
 
 
 def stop_now(contexts, active_context, **kwargs):
     choices = _get_context_names(contexts, active_context)
     # Add all remote Flows that exists with the namespace `nowapi`
-    alive_flows = list_all_wolf()
+    alive_flows = list_all_wolf(status=FLOW_STATUS)
     for flow_details in alive_flows:
-        choices.append(flow_details['gateway'])
+        choices.append(flow_details['name'])
     if len(choices) == 0:
         cowsay.cow('nothing to stop')
         return
@@ -68,12 +68,12 @@ def stop_now(contexts, active_context, **kwargs):
                 spinner.ok('💀')
             cowsay.cow(f'nowapi namespace removed from {cluster}')
     elif 'wolf.jina.ai' in cluster:
-        flow = [x for x in alive_flows if x['gateway'] == cluster][0]
-        flow_id = get_flow_id(flow['name'])
+        flow = [x for x in alive_flows if x['name'] == cluster][0]
+        flow_id = flow['id']
         _result = status_wolf(flow_id)
         if _result is None:
             print(f'❎ Flow not found in JCloud. Likely, it has been deleted already')
-        if _result is not None and _result['status'] == 'ALIVE':
+        if _result is not None and _result['status']['phase'] == FLOW_STATUS:
             terminate_wolf(flow_id)
             from hubble import Client
 

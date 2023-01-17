@@ -29,13 +29,15 @@ def get_or_create_eventloop():
 
 
 def list_all_wolf(status='Serving', namespace='nowapi'):
+    flows = []
     loop = get_or_create_eventloop()
-    flows = loop.run_until_complete(CloudFlow().list_all(phase=status))
-    if flows is None:
-        return []
+    jflows = loop.run_until_complete(CloudFlow().list_all(phase=status))['flows']
+    # Transform the JCloud flow response to a much simpler list of dicts
+    for flow in jflows:
+        flows.append({'id': flow['id'], 'name': flow['status']['endpoints']['gateway']})
     # filter by namespace - if the namespace is contained in the flow name
     if namespace:
-        return [f for f in flows if namespace in f]
+        return [f for f in flows if namespace in f['id']]
     return flows
 
 
