@@ -136,74 +136,74 @@ jobs:
           executor_id: w5w084h7
           jina_auth_token: ${{ secrets.NOW_STAGING_FLORIAN }}
 
-  update-bff-playground:
-    runs-on: ubuntu-latest
-    needs: [lint-flake-8, check-black, commit-lint]
-    steps:
-      - uses: actions/checkout@v2
-      - name: Check if deployment has changed
-        uses: dorny/paths-filter@v2
-        id: check_has_deployment_changed
-        with:
-          filters: |
-            has_deployment_changed:
-            - 'deployment/playground/**'
-            - 'deployment/bff/**'
-      - name: Get bff and playground tag
-        if: steps.check_has_deployment_changed.outputs.has_deployment_changed == 'true'
-        run: |
-          FILE='now/constants.py'
-          BFF_PLAYGROUND_TAG=$(sed -n '/DOCKER_BFF_PLAYGROUND_TAG =/p' $FILE | cut -d \' -f2)
-          echo "BFF_PLAYGROUND_TAG=$BFF_PLAYGROUND_TAG" >> $GITHUB_ENV
-      - name: Check that tag isn't used already for bff
-        if: steps.check_has_deployment_changed.outputs.has_deployment_changed == 'true'
-        env:
-          IMAGE_TAG: ${{ env.BFF_PLAYGROUND_TAG }}
-        run: |
-          if docker manifest inspect jinaai/now-bff:$IMAGE_TAG; then
-            echo "Docker tag is used already for bff. Please update bff and playground tag"
-            exit 1
-          else
-            echo "Docker tag isn't used already for bff, continue to build..."
-          fi
-      - name: Check that tag isn't used already for playground
-        if: steps.check_has_deployment_changed.outputs.has_deployment_changed == 'true'
-        env:
-          IMAGE_TAG: ${{ env.BFF_PLAYGROUND_TAG }}
-        run: |
-          if docker manifest inspect jinaai/now-playground:$IMAGE_TAG; then
-            echo "Docker tag is used already for playground. Please update bff and playground tag"
-            exit 1
-          else
-            echo "Docker tag isn't used already for playground, continue to build..."
-          fi
-      - name: Set up Docker Buildx
-        if: steps.check_has_deployment_changed.outputs.has_deployment_changed == 'true'
-        uses: docker/setup-buildx-action@v1
-      - name: Login to DockerHub
-        if: steps.check_has_deployment_changed.outputs.has_deployment_changed == 'true'
-        uses: docker/login-action@v1
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-      - name: replace now commit hash in Dockerfile
-        if: steps.check_has_deployment_changed.outputs.has_deployment_changed == 'true'
-        shell: bash
-        run: sed -i 's/JINA_NOW_COMMIT_SHA/${{ github.event.pull_request.head.sha }}/g' deployment/bff/Dockerfile
-      - name: Build and push bff
-        if: steps.check_has_deployment_changed.outputs.has_deployment_changed == 'true'
-        uses: docker/build-push-action@v3
-        with:
-          context: deployment/bff/.
-          push: true
-          tags: jinaai/now-bff:${{ env.BFF_PLAYGROUND_TAG }}
-      - name: Build and push playground
-        if: steps.check_has_deployment_changed.outputs.has_deployment_changed == 'true'
-        uses: docker/build-push-action@v3
-        with:
-          context: deployment/playground/.
-          push: true
-          tags: jinaai/now-playground:${{ env.BFF_PLAYGROUND_TAG }}
+#  update-bff-playground:
+#    runs-on: ubuntu-latest
+#    needs: [lint-flake-8, check-black, commit-lint]
+#    steps:
+#      - uses: actions/checkout@v2
+#      - name: Check if deployment has changed
+#        uses: dorny/paths-filter@v2
+#        id: check_has_deployment_changed
+#        with:
+#          filters: |
+#            has_deployment_changed:
+#            - 'deployment/playground/**'
+#            - 'deployment/bff/**'
+#      - name: Get bff and playground tag
+#        if: steps.check_has_deployment_changed.outputs.has_deployment_changed == 'true'
+#        run: |
+#          FILE='now/constants.py'
+#          BFF_PLAYGROUND_TAG=$(sed -n '/DOCKER_BFF_PLAYGROUND_TAG =/p' $FILE | cut -d \' -f2)
+#          echo "BFF_PLAYGROUND_TAG=$BFF_PLAYGROUND_TAG" >> $GITHUB_ENV
+#      - name: Check that tag isn't used already for bff
+#        if: steps.check_has_deployment_changed.outputs.has_deployment_changed == 'true'
+#        env:
+#          IMAGE_TAG: ${{ env.BFF_PLAYGROUND_TAG }}
+#        run: |
+#          if docker manifest inspect jinaai/now-bff:$IMAGE_TAG; then
+#            echo "Docker tag is used already for bff. Please update bff and playground tag"
+#            exit 1
+#          else
+#            echo "Docker tag isn't used already for bff, continue to build..."
+#          fi
+#      - name: Check that tag isn't used already for playground
+#        if: steps.check_has_deployment_changed.outputs.has_deployment_changed == 'true'
+#        env:
+#          IMAGE_TAG: ${{ env.BFF_PLAYGROUND_TAG }}
+#        run: |
+#          if docker manifest inspect jinaai/now-playground:$IMAGE_TAG; then
+#            echo "Docker tag is used already for playground. Please update bff and playground tag"
+#            exit 1
+#          else
+#            echo "Docker tag isn't used already for playground, continue to build..."
+#          fi
+#      - name: Set up Docker Buildx
+#        if: steps.check_has_deployment_changed.outputs.has_deployment_changed == 'true'
+#        uses: docker/setup-buildx-action@v1
+#      - name: Login to DockerHub
+#        if: steps.check_has_deployment_changed.outputs.has_deployment_changed == 'true'
+#        uses: docker/login-action@v1
+#        with:
+#          username: ${{ secrets.DOCKER_USERNAME }}
+#          password: ${{ secrets.DOCKER_PASSWORD }}
+#      - name: replace now commit hash in Dockerfile
+#        if: steps.check_has_deployment_changed.outputs.has_deployment_changed == 'true'
+#        shell: bash
+#        run: sed -i 's/JINA_NOW_COMMIT_SHA/${{ github.event.pull_request.head.sha }}/g' deployment/bff/Dockerfile
+#      - name: Build and push bff
+#        if: steps.check_has_deployment_changed.outputs.has_deployment_changed == 'true'
+#        uses: docker/build-push-action@v3
+#        with:
+#          context: deployment/bff/.
+#          push: true
+#          tags: jinaai/now-bff:${{ env.BFF_PLAYGROUND_TAG }}
+#      - name: Build and push playground
+#        if: steps.check_has_deployment_changed.outputs.has_deployment_changed == 'true'
+#        uses: docker/build-push-action@v3
+#        with:
+#          context: deployment/playground/.
+#          push: true
+#          tags: jinaai/now-playground:${{ env.BFF_PLAYGROUND_TAG }}
 
   core-test:
     runs-on: ubuntu-latest
@@ -212,7 +212,7 @@ jobs:
         update-preprocessor,
         update-elastic,
         update-autocomplete,
-        update-bff-playground,
+#        update-bff-playground,
       ]
     strategy:
       fail-fast: false
