@@ -4,6 +4,7 @@ import pytest
 from jina import Flow
 
 from now.constants import NOW_GATEWAY_VERSION
+from now.deployment.deployment import cmd
 from now.executor.gateway.gateway import NOWGateway
 
 
@@ -13,6 +14,9 @@ from now.executor.gateway.gateway import NOWGateway
 )
 def test_gateway_flow_with(gateway_uses):
     os.environ['JINA_LOG_LEVEL'] = 'DEBUG'
+
+    if isinstance(gateway_uses, str):
+        cmd(f'jina hub pull {gateway_uses}')
 
     # @dataclass
     # class MMResult:
