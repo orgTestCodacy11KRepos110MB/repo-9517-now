@@ -8,7 +8,7 @@ jcloud:
   labels:
     team: now
 gateway:
-  protocol: grpc
+  protocol: [grpc]
   monitoring: true
   port_expose: 8080
   prefetch: 10
