@@ -57,7 +57,9 @@ def test_disable_telemetry(disable):
         dataset=da, user_input=user_input, kubectl_path='kube_path', data_class=None
     )
 
-    assert app.flow_yaml['with']['env'].get('JINA_OPTOUT_TELEMETRY') == expected_value
+    assert (
+        app.flow_yaml['gateway']['env'].get('JINA_OPTOUT_TELEMETRY') == expected_value
+    )
     for executor in app.flow_yaml['executors']:
         assert executor['env'].get('JINA_OPTOUT_TELEMETRY') == expected_value
 
