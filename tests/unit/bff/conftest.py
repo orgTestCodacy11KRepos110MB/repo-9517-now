@@ -43,7 +43,7 @@ def client_with_mocked_jina_client(
             return MockedJinaClient(response)
 
         mocker.patch(
-            'now.executor.gateway.bff.app.v1.routers.helper.GatewayStreamer.get_streamer',
+            'now.executor.gateway.gateway.bff.app.v1.routers.helper.GatewayStreamer.get_streamer',
             _get_jina_streamer,
         )
 

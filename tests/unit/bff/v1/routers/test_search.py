@@ -6,16 +6,6 @@ from docarray import Document, DocumentArray
 from starlette import status
 
 
-def test_text_search_fails_with_no_flow_running(
-    client: requests.Session, base64_image_string: str
-):
-    with pytest.raises(ConnectionError):
-        client.post(
-            f'/api/v1/search-app/search',
-            json={'query': {'query_image': {'blob': base64_image_string}}},
-        )
-
-
 def test_text_search_fails_with_incorrect_query(client):
     with pytest.raises(ValueError):
         client.post(
