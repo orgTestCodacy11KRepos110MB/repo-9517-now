@@ -10,7 +10,7 @@ from jina.serve.runtimes.gateway.http.fastapi import FastAPIBaseGateway
 from jina.serve.runtimes.gateway.http.models import JinaHealthModel
 from streamlit.web.server import Server as StreamlitServer
 
-from now.constants import CG_BFF_PORT
+from now.constants import CG_BFF_PORT, NOW_GATEWAY_VERSION
 from now.executor.gateway.gateway.bff.app.app import application
 
 cur_dir = os.path.dirname(__file__)
@@ -99,21 +99,18 @@ if __name__ == '__main__':
     f = (
         Flow()
         .config_gateway(
-            uses=NOWGateway,
+            uses=f'jinahub+docker://2m00g87k/{NOW_GATEWAY_VERSION}',
             protocol=['grpc'],
         )
         .add(uses=DummyEncoder, name='encoder')
     )
 
     with f:
-        f.block()
-    #     print('start')
-    #     result = f.post(
-    #         on='/search',
-    #         inputs=Document(text='test')
-    #     )
-    #     result.summary()
-    #     result[0].matches.summary()
-    #     result[0].matches[0].summary()
-    #
+        # f.block()
+        print('start')
+        result = f.post(on='/search', inputs=Document(text='test'))
+        result.summary()
+        result[0].matches.summary()
+        result[0].matches[0].summary()
+
     # print('done')
