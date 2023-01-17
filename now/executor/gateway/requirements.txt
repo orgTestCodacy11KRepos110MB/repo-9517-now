@@ -1,12 +1,11 @@
 streamlit==1.16.0
 extra-streamlit-components==0.1.55
-av==9.1.1
 click==8.0.0
 better_profanity==0.7.0
 docarray==0.19.1
 pydantic==1.8.2
 frozendict==2.3.4
-jina==3.12.0
+jina==3.13.2
 fastapi==0.78.0
 uvicorn==0.17.6
 uvloop==0.16.0

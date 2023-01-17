@@ -41,6 +41,9 @@ def flow(random_index_name, metas):
                 'hosts': 'http://localhost:9200',
                 'index_name': random_index_name,
                 'document_mappings': DOCUMENT_MAPPINGS,
+                'user_input_dict': {
+                    'filter_fields': ['color', 'greeting'],
+                },
             },
             uses_metas=metas,
             no_reduce=True,
@@ -199,7 +202,9 @@ class TestElasticIndexer:
     def test_delete_tags(self, metas, setup_service_running, flow):
         docs = self.get_docs(NUMBER_OF_DOCS)
         with flow:
-            flow.post(on='/index', inputs=docs)
+            flow.index(
+                docs,
+            )
             flow.post(
                 on='/delete',
                 parameters={'filter': {'tags__color': {'$eq': 'blue'}}},
@@ -354,7 +359,9 @@ class TestElasticIndexer:
         docs = self.get_docs(NUMBER_OF_DOCS)
 
         with flow:
-            flow.index(docs)
+            flow.index(
+                docs,
+            )
             flow.post(
                 on='/curate',
                 parameters={

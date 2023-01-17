@@ -36,6 +36,10 @@ pip install jina-now
 
 If you need sudo to run Docker, use sudo to install and use Jina NOW as well.
 
+```{important}
+Jina NOW is only available on Linux and macOS.
+```
+
 #### Mac M1
 
 For the M1 we recommend using a [Conda environment](https://docs.jina.ai/get-started/install/troubleshooting/#on-mac-m1).

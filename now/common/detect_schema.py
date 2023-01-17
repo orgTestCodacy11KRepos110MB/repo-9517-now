@@ -95,7 +95,7 @@ def _extract_field_candidates_docarray(response):
     """
     search_modalities = {}
     filter_modalities = {}
-    doc = requests.get(response.json()['data']['download']).json()[0]
+    doc = requests.get(response.json()['data']['download']).json()
     if (
         not doc.get('_metadata', None)
         or 'multi_modal_schema' not in doc['_metadata']['fields']
@@ -165,7 +165,7 @@ def set_field_names_from_docarray(user_input: UserInput, **kwargs):
         'name': dataset_name,
     }
     response = requests.post(
-        'https://api.hubble.jina.ai/v2/rpc/docarray.getFirstDocuments',
+        'https://api.hubble.jina.ai/v2/rpc/docarray.getModalityInfo',
         cookies=cookies,
         json=json_data,
     )

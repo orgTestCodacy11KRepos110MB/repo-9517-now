@@ -12,12 +12,20 @@ def get_request_body():
 
 
 def test_search_filters(setup_service_running, random_index_name, tmpdir):
-    f = get_flow(tmpdir=tmpdir, indexer_args={'index_name': random_index_name})
+    f = get_flow(
+        tmpdir=tmpdir,
+        indexer_args={
+            'index_name': random_index_name,
+            'user_input_dict': {
+                'filter_fields': ['color'],
+            },
+        },
+    )
     with f:
         index_data(f)
         request_body = get_request_body()
         request_body['query'] = {'query_text': {'text': 'test'}}
-        request_body['filters'] = {'color': 'blue'}
+        request_body['filters'] = {'color': 'Blue Color'}
         response = requests.post(
             SEARCH_URL,
             json=request_body,
@@ -25,4 +33,4 @@ def test_search_filters(setup_service_running, random_index_name, tmpdir):
 
     assert response.status_code == 200
     assert len(response.json()) == 1
-    assert response.json()[0]['tags']['color'] == 'blue'
+    assert response.json()[0]['tags']['color'] == 'Blue Color'

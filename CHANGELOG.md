@@ -41,6 +41,7 @@
 
 
 
+
 <a name=release-note-0-0-7></a>
 ## Release Note (`0.0.7`)
 
@@ -1398,4 +1399,40 @@
 ### 🍹 Other Improvements
 
  - [[```e1b1bbf1```](https://github.com/jina-ai/now/commit/e1b1bbf157a50427c2afee50dcc8c3148de8bed6)] __-__ __version__: the next version will be 0.0.48 (*Jina Dev Bot*)
+
+<a name=release-note-0-0-49></a>
+## Release Note (`0.0.49`)
+
+> Release time: 2023-01-17 08:08:04
+
+
+
+🙇 We'd like to thank all contributors for this new release! In particular,
+ Mohammad Kalim Akram,  Saba Sturua,  Aziz Belaweid,  Florian Hönicke,  Joschka Braun,  IyadhKhalfallah,  Jina Dev Bot,  🙇
+
+
+### 🐞 Bug fixes
+
+ - [[```5bcc726e```](https://github.com/jina-ai/now/commit/5bcc726eb3950dec972f3a1dfd504311514f19cc)] __-__ allow all as an options in filter (#937) (*Mohammad Kalim Akram*)
+ - [[```1f305003```](https://github.com/jina-ai/now/commit/1f305003a96837b24277cd3ceb3152b72ac19ece)] __-__ list endpoint when indexer is empty (#928) (*Mohammad Kalim Akram*)
+ - [[```cec1dfc0```](https://github.com/jina-ai/now/commit/cec1dfc0592319d3b214d8d400e72d4b86393b7b)] __-__ speed up schema detection (#931) (*Aziz Belaweid*)
+ - [[```fc11fcc8```](https://github.com/jina-ai/now/commit/fc11fcc837a80f53222d15d204df9a3041c5b082)] __-__ add space (#920) (*Aziz Belaweid*)
+ - [[```3c808791```](https://github.com/jina-ai/now/commit/3c8087919846fdcb1cb46176c3aea85d7e3fc187)] __-__ set filter field modality to string not class (#916) (*Joschka Braun*)
+ - [[```5f1494a8```](https://github.com/jina-ai/now/commit/5f1494a854ef1d55a11b5196d85d5ec019da62fe)] __-__ move tag adding logic inside docarrays (#912) (*IyadhKhalfallah*)
+
+### 🧼 Code Refactoring
+
+ - [[```65d17e12```](https://github.com/jina-ai/now/commit/65d17e1295495e4de28a47498a88b03fbf5e1cfb)] __-__ delete flow after the cli test ends (#938) (*Saba Sturua*)
+ - [[```a5b9ed3f```](https://github.com/jina-ai/now/commit/a5b9ed3ff0510b94a103cc897289d3b27864180c)] __-__ remove webcam (#932) (*Saba Sturua*)
+ - [[```81491497```](https://github.com/jina-ai/now/commit/81491497ca3dad657b870d575caedd14c5e57f23)] __-__ bump jina version (#862) (*Florian Hönicke*)
+ - [[```87f97509```](https://github.com/jina-ai/now/commit/87f9750962561d53e52bcbe0cc973e50c8f20e6f)] __-__ move curation to private (#918) (*Florian Hönicke*)
+ - [[```9335ccc9```](https://github.com/jina-ai/now/commit/9335ccc990d3014f585df1f4d70e9bcfd6e0121e)] __-__ add filter fields to es mapping (#915) (*Saba Sturua*)
+
+### 📗 Documentation
+
+ - [[```3734bb57```](https://github.com/jina-ai/now/commit/3734bb57e321ada0570814f71a45dbd346b86573)] __-__ add os requirements (#922) (*Aziz Belaweid*)
+
+### 🍹 Other Improvements
+
+ - [[```36576aed```](https://github.com/jina-ai/now/commit/36576aed3fa8886d64380583c45cd9b9acdde4d2)] __-__ __version__: the next version will be 0.0.49 (*Jina Dev Bot*)
 

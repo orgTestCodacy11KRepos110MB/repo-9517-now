@@ -4,7 +4,7 @@ with:
   env:
     JINA_LOG_LEVEL: DEBUG
 jcloud:
-  version: '3.12.0'
+  version: '3.13.2'
   labels:
     team: now
 gateway:

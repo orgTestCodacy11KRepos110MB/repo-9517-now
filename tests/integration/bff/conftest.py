@@ -20,7 +20,8 @@ def index_data(f, **kwargs):
 
     docs = DocumentArray([Document(Doc(title='test')) for _ in range(10)])
     for index, doc in enumerate(docs):
-        doc.tags['color'] = 'blue' if index == 0 else 'red'
+        doc.tags['color'] = 'Blue Color' if index == 0 else 'Red Color'
+        doc.tags['price'] = 0.5 + index
 
     f.index(
         docs,

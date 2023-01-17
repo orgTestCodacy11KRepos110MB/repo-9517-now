@@ -1,4 +1,4 @@
-FROM jinaai/jina:3.12.0
+FROM jinaai/jina:3.13.2
 
 RUN apt-get update && apt-get install -y git &&\
     apt-get -y install build-essential libgomp1 libgl1-mesa-glx libglib2.0-0 libsm6 libxext6 libxrender-dev && \

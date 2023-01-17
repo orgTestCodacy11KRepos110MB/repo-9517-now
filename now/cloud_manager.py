@@ -46,7 +46,7 @@ def create_local_cluster(kind_path, **kwargs):
             cowsay.cow('see you soon 👋')
             exit(0)
     with yaspin_extended(
-        sigmap=sigmap, text="Setting up local cluster", color="green"
+        sigmap=sigmap, text="Setting up local cluster. ", color="green"
     ) as spinner:
         kindest_images = docker.from_env().images.list('kindest/node')
         if len(kindest_images) == 0:

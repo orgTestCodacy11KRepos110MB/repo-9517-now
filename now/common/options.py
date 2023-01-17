@@ -41,6 +41,9 @@ AVAILABLE_SOON = 'will be available in upcoming versions'
 
 
 def _check_index_field(user_input: UserInput, **kwargs):
+    if not user_input.index_fields:
+        raise RetryException('Please select at least one index field')
+
     if (
         user_input.index_fields[0]
         not in user_input.index_field_candidates_to_modalities.keys()
@@ -49,6 +52,24 @@ def _check_index_field(user_input: UserInput, **kwargs):
             f'Index field specified is not among the index candidate fields. Please '
             f'choose one of the following: {user_input.index_field_candidates_to_modalities.keys()}'
         )
+
+
+def _fill_filter_field_if_selected_all(user_input: UserInput, **kwargs):
+    if '__all__' in user_input.filter_fields:
+        user_input.filter_fields = list(
+            user_input.filter_field_candidates_to_modalities.keys()
+        )
+
+
+def _append_all_option_to_filter(user_input: UserInput):
+    choices = [
+        {'name': field, 'value': field}
+        for field in user_input.filter_field_candidates_to_modalities.keys()
+        if field not in user_input.index_fields
+    ]
+    if len(choices) > 1:
+        choices.append({'name': 'All of the above', 'value': '__all__'})
+    return choices
 
 
 APP_NAME = DialogOptions(
@@ -207,11 +228,7 @@ INDEX_FIELDS = DialogOptions(
 
 FILTER_FIELDS = DialogOptions(
     name='filter_fields',
-    choices=lambda user_input, **kwargs: [
-        {'name': field, 'value': field}
-        for field in user_input.filter_field_candidates_to_modalities.keys()
-        if field not in user_input.index_fields
-    ],
+    choices=lambda user_input, **kwargs: _append_all_option_to_filter(user_input),
     prompt_message='Please select the filter fields',
     prompt_type='checkbox',
     depends_on=DATASET_TYPE,
@@ -222,7 +239,9 @@ FILTER_FIELDS = DialogOptions(
         - set(user_input.index_fields)
     )
     > 0,
+    post_func=_fill_filter_field_if_selected_all,
 )
+
 
 ES_INDEX_NAME = DialogOptions(
     name='es_index_name',

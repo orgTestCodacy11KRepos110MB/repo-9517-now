@@ -15,6 +15,8 @@ from better_profanity import profanity
 from docarray import Document, DocumentArray
 from jina import Client
 from streamlit.runtime.scriptrunner import add_script_run_ctx
+from streamlit.scriptrunner import add_script_run_ctx
+from streamlit.server.server import Server
 
 # from streamlit.scriptrunner import add_script_run_ctx
 from streamlit.web.server.server import Server
@@ -146,11 +148,9 @@ def deploy_streamlit():
                 values.insert(0, 'All')
                 filter_selection[tag] = st.sidebar.selectbox(tag, values)
 
-        st_ratio_options = ['Text', 'Image', 'Webcam']
-
         media_type = st.radio(
             '',
-            st_ratio_options,
+            ['Text', 'Image'],
             on_change=clear_match,
         )
 

@@ -12,6 +12,7 @@ def test_generate_es_mappings(setup_service_running):
     document_mappings = [
         FieldEmbedding('clip', 8, ['title']),
     ]
+    es_indexer = NOWElasticIndexer(document_mappings=document_mappings)
     expected_mapping = {
         'properties': {
             'id': {'type': 'keyword'},
@@ -28,9 +29,7 @@ def test_generate_es_mappings(setup_service_running):
             },
         }
     }
-    result = NOWElasticIndexer.generate_es_mapping(
-        document_mappings=document_mappings, metric='cosine'
-    )
+    result = es_indexer.generate_es_mapping()
     assert result == expected_mapping
 
 

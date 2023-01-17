@@ -1,8 +1,6 @@
 import base64
 import json
 import os
-import tempfile
-import time
 from argparse import Namespace
 
 import pytest
@@ -13,10 +11,9 @@ from now.admin.utils import get_default_request_body
 from now.cli import _get_kind_path, _get_kubectl_path, cli
 from now.cloud_manager import create_local_cluster
 from now.common.options import NEW_CLUSTER
-from now.constants import Apps, DatasetTypes
+from now.constants import DatasetTypes
 from now.demo_data import DemoDatasetNames
-from now.deployment.deployment import cmd, list_all_wolf, terminate_wolf
-from now.utils import get_flow_id
+from now.deployment.deployment import cmd, list_all_wolf
 
 
 @pytest.fixture
@@ -27,58 +24,15 @@ def test_search_image(resources_folder_path: str):
     return img_query
 
 
-@pytest.fixture()
-def cleanup(deployment_type, dataset, app):
-    with tempfile.TemporaryDirectory() as tmpdir:
-        start = time.time()
-        yield tmpdir
-        print('start cleanup')
-        try:
-            if deployment_type == 'remote':
-                with open(f'{tmpdir}/flow_details.json', 'r') as f:
-                    flow_details = json.load(f)
-                if 'host' not in flow_details:
-                    print('nothing to clean up')
-                    return
-                host = flow_details['host']
-                flow_id = get_flow_id(host)
-                terminate_wolf(flow_id)
-            else:
-                print('\nDeleting local cluster')
-                kwargs = {
-                    'app': app,
-                    'deployment_type': deployment_type,
-                    'now': 'stop',
-                    'cluster': 'kind-jina-now',
-                    'delete-cluster': True,
-                }
-                kwargs = Namespace(**kwargs)
-                cli(args=kwargs)
-        except Exception as e:
-            print('no clean up')
-            print(e)
-            return
-        print('cleaned up')
-        now = time.time() - start
-        mins = int(now / 60)
-        secs = int(now % 60)
-        print(50 * '#')
-        print(
-            f'Time taken to execute `{deployment_type}` deployment with dataset `{dataset}`: {mins}m {secs}s'
-        )
-        print(50 * '#')
-
-
 def test_token_exists():
     list_all_wolf()
 
 
 @pytest.mark.remote
 @pytest.mark.parametrize(
-    'app, query_fields, index_fields, filter_fields, dataset, deployment_type',
+    'query_fields, index_fields, filter_fields, dataset, deployment_type',
     [
         (
-            Apps.SEARCH_APP,
             'text',
             ['image'],
             ['label'],
@@ -87,9 +41,8 @@ def test_token_exists():
         ),
     ],
 )
-@pytest.mark.timeout(60 * 30)
+@pytest.mark.timeout(60 * 10)
 def test_end_to_end_remote(
-    app: str,
     dataset: str,
     deployment_type: str,
     test_search_image,
@@ -100,7 +53,6 @@ def test_end_to_end_remote(
     with_hubble_login_patch,
 ):
     run_end_to_end(
-        app,
         cleanup,
         dataset,
         deployment_type,
@@ -112,10 +64,9 @@ def test_end_to_end_remote(
 
 
 @pytest.mark.parametrize(
-    'app, query_fields, index_fields, filter_fields, dataset, deployment_type',
+    'query_fields, index_fields, filter_fields, dataset, deployment_type',
     [
         (
-            Apps.SEARCH_APP,
             'image',
             ['image'],
             ['label'],
@@ -123,7 +74,6 @@ def test_end_to_end_remote(
             'local',
         ),
         (
-            Apps.SEARCH_APP,
             'text',
             ['lyrics'],
             [],
@@ -131,7 +81,6 @@ def test_end_to_end_remote(
             'local',
         ),
         (
-            Apps.SEARCH_APP,
             'text',
             ['video', 'description'],
             [],
@@ -140,9 +89,8 @@ def test_end_to_end_remote(
         ),
     ],
 )
-@pytest.mark.timeout(60 * 30)
+@pytest.mark.timeout(60 * 10)
 def test_end_to_end_local(
-    app: str,
     dataset: str,
     deployment_type: str,
     test_search_image,
@@ -153,7 +101,6 @@ def test_end_to_end_local(
     with_hubble_login_patch,
 ):
     run_end_to_end(
-        app,
         cleanup,
         dataset,
         deployment_type,
@@ -165,7 +112,6 @@ def test_end_to_end_local(
 
 
 def run_end_to_end(
-    app,
     cleanup,
     dataset,
     deployment_type,
@@ -361,10 +307,8 @@ def assert_deployment_response(deployment_type, response):
 
 @pytest.mark.parametrize('deployment_type', ['remote'])
 @pytest.mark.parametrize('dataset', ['custom_s3_bucket'])
-@pytest.mark.parametrize('app', [Apps.SEARCH_APP])
 @pytest.mark.parametrize('query_fields', ['image'])
 def test_backend_custom_data(
-    app,
     deployment_type: str,
     dataset: str,
     query_fields: str,
@@ -373,7 +317,6 @@ def test_backend_custom_data(
 ):
     kwargs = {
         'now': 'start',
-        'app': app,
         'flow_name': 'nowapi',
         'dataset_type': DatasetTypes.S3_BUCKET,
         'dataset_path': os.environ.get('S3_CUSTOM_DATA_PATH'),
