@@ -253,7 +253,7 @@ class JinaNOWApp:
     @staticmethod
     def add_telemetry_env(flow_yaml_content):
         if 'JINA_OPTOUT_TELEMETRY' in os.environ:
-            flow_yaml_content['with']['env']['JINA_OPTOUT_TELEMETRY'] = os.environ[
+            flow_yaml_content['gateway']['env']['JINA_OPTOUT_TELEMETRY'] = os.environ[
                 'JINA_OPTOUT_TELEMETRY'
             ]
             for executor in flow_yaml_content['executors']:
