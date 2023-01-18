@@ -10,6 +10,7 @@ jcloud:
 gateway:
   protocol: [grpc]
 #  monitoring: true
+  port: [8080]
   port_expose: 8080
   prefetch: 10
   cors: true
