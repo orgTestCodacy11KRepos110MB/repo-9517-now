@@ -1,4 +1,4 @@
 boto3
 paddlepaddle==2.4.0rc0
 paddleocr>=2.0.1
-jina[filelock]>=3.13.2.dev31
+jina[filelock]==3.13.2.dev34
