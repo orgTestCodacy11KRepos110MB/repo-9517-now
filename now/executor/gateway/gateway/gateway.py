@@ -1,5 +1,6 @@
 import os
 
+import jina
 import streamlit.web.bootstrap
 from docarray import Document, DocumentArray, dataclass
 from docarray.typing import Text
@@ -17,6 +18,7 @@ cur_dir = os.path.dirname(__file__)
 
 class PlaygroundGateway(Gateway):
     def __init__(self, **kwargs):
+        print(f"jina version: {jina.__version__}")
         super().__init__(**kwargs)
         self.streamlit_script = 'playground/playground.py'
 
