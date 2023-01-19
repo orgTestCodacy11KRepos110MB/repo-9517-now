@@ -42,7 +42,6 @@ class UserInput(BaseModel):
 
     # cluster related
     cluster: Optional[str] = None
-    deployment_type: Optional[str] = None
     secured: Optional[StrictBool] = None
     jwt: Optional[Dict[str, str]] = None
     admin_name: Optional[str] = None

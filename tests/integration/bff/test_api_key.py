@@ -18,8 +18,7 @@ update_emails_url = f'{BASE_URL}/admin/updateUserEmails'
 
 
 def get_request_body():
-    request_body = get_default_request_body('local', True, None)
-    request_body['host'] = HOST
+    request_body = get_default_request_body(host=HOST, secured=True)
     request_body['port'] = PORT
     return request_body
 

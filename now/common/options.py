@@ -11,8 +11,6 @@ import os
 import uuid
 
 from hubble import AuthenticationRequiredError
-from kubernetes import client, config
-
 from now.common.detect_schema import (
     set_field_names_elasticsearch,
     set_field_names_from_docarray,
@@ -25,14 +23,12 @@ from now.log import yaspin_extended
 from now.now_dataclasses import DialogOptions, UserInput
 from now.utils import (
     RetryException,
-    _get_context_names,
     get_info_hubble,
     jina_auth_login,
     sigmap,
     to_camel_case,
 )
 
-NEW_CLUSTER = {'name': '🐣 create new', 'value': 'new'}
 AVAILABLE_SOON = 'will be available in upcoming versions'
 
 
@@ -272,51 +268,6 @@ ES_ADDITIONAL_ARGS = DialogOptions(
 )
 
 # --------------------------------------------- #
-
-DEPLOYMENT_TYPE = DialogOptions(
-    name='deployment_type',
-    prompt_message='Where do you want to deploy your search engine?',
-    prompt_type='list',
-    choices=[
-        {
-            'name': '⛅️ Jina Cloud',
-            'value': 'remote',
-        },
-        {
-            'name': '📍 Local',
-            'value': 'local',
-        },
-    ],
-    is_terminal_command=True,
-    description='Options are `local` or `remote`. Select `local` if you want your search engine '
-    'to be deployed on a local cluster. Select `remote` to deploy it on Jina Cloud',
-    post_func=lambda user_input, **kwargs: check_login_deployment(user_input),
-)
-
-
-def check_login_deployment(user_input: UserInput):
-    if user_input.deployment_type == 'remote' and user_input.jwt is None:
-        _jina_auth_login(user_input)
-
-
-LOCAL_CLUSTER = DialogOptions(
-    name='cluster',
-    prompt_message='On which cluster do you want to deploy your search engine?',
-    prompt_type='list',
-    choices=lambda user_input, **kwargs: _construct_local_cluster_choices(
-        user_input, **kwargs
-    ),
-    depends_on=DEPLOYMENT_TYPE,
-    is_terminal_command=True,
-    description='Reference an existing `local` cluster or select `new` to create a new one. '
-    'Use this only when the `--deployment-type=local`',
-    conditional_check=lambda user_inp: user_inp.deployment_type == 'local',
-    post_func=lambda user_input, **kwargs: user_input.app_instance.run_checks(
-        user_input
-    ),
-)
-
-
 SECURED = DialogOptions(
     name='secured',
     prompt_message='Do you want to secure the Flow?',
@@ -325,10 +276,15 @@ SECURED = DialogOptions(
         {'name': '⛔ no', 'value': False},
         {'name': '✅ yes', 'value': True},
     ],
-    depends_on=DEPLOYMENT_TYPE,
     is_terminal_command=True,
-    conditional_check=lambda user_inp: user_inp.deployment_type == 'remote',
+    post_func=lambda user_input, **kwargs: check_login_deployment(user_input),
 )
+
+
+def check_login_deployment(user_input: UserInput):
+    if user_input.jwt is None:
+        _jina_auth_login(user_input)
+
 
 API_KEY = DialogOptions(
     name='api_key',
@@ -384,12 +340,6 @@ def _add_additional_users(user_input: UserInput, **kwargs):
     )
 
 
-def _check_if_namespace_exist():
-    config.load_kube_config()
-    v1 = client.CoreV1Api()
-    return 'nowapi' in [item.metadata.name for item in v1.list_namespace().items]
-
-
 def construct_app(app_name: str):
     return getattr(
         importlib.import_module(f'now.app.{app_name}.app'),
@@ -411,32 +361,6 @@ def _jina_auth_login(user_input: UserInput, **kwargs):
     os.environ['JCLOUD_NO_SURVEY'] = '1'
 
 
-def _construct_local_cluster_choices(user_input: UserInput, **kwargs):
-    active_context = kwargs.get('active_context')
-    contexts = kwargs.get('contexts')
-    context_names = _get_context_names(contexts, active_context)
-    choices = [NEW_CLUSTER]
-    # filter contexts with `gke`
-    if len(context_names) > 0 and len(context_names[0]) > 0:
-        context_names = [
-            context
-            for context in context_names
-            if 'gke' not in context and _cluster_running(context)
-        ]
-        choices = context_names + choices
-    return choices
-
-
-def _cluster_running(cluster):
-    config.load_kube_config(context=cluster)
-    v1 = client.CoreV1Api()
-    try:
-        v1.list_namespace()
-    except Exception as e:
-        return False
-    return True
-
-
 app_config = [APP_NAME]
 data_type = [DATASET_TYPE]
 data_fields = [INDEX_FIELDS, FILTER_FIELDS]
@@ -448,7 +372,6 @@ data_es = [
     ES_INDEX_NAME,
     ES_ADDITIONAL_ARGS,
 ]
-cluster = [DEPLOYMENT_TYPE, LOCAL_CLUSTER]
 remote_cluster = [SECURED, API_KEY, ADDITIONAL_USERS, USER_EMAILS]
 
 base_options = (
@@ -459,6 +382,5 @@ base_options = (
     + data_es
     + data_fields
     + app_config
-    + cluster
     + remote_cluster
 )

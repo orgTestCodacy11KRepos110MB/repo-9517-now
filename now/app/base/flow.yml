@@ -1,11 +1,6 @@
 jtype: Flow
 with:
   name: nowapi
-  monitoring: true
-  cors: true
-  prefetch: 10
-  env:
-    JINA_LOG_LEVEL: DEBUG
 jcloud:
   version: ${{ ENV.JINA_VERSION }}
   custom_dns:
@@ -13,5 +8,10 @@ jcloud:
   labels:
     team: now
 gateway:
-  protocol: [grpc]
-  port: [8080]
+  protocol: [http, http, http]
+  port: [8081, 8080, 8501]
+  monitoring: true
+  cors: true
+  prefetch: 10
+  env:
+    JINA_LOG_LEVEL: DEBUG

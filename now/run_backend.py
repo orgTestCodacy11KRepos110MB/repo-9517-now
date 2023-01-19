@@ -26,7 +26,6 @@ from now.utils import add_env_variables_to_flow, get_flow_id
 def run(
     app_instance: JinaNOWApp,
     user_input: UserInput,
-    kubectl_path: str,
     **kwargs,
 ):
     """
@@ -37,7 +36,6 @@ def run(
     - Index the data
     :param app_instance: The app instance
     :param user_input: The user input
-    :param kubectl_path: The path to the kubectl binary
     :param kwargs: Additional arguments
     :return:
     """
@@ -57,23 +55,14 @@ def run(
     env_dict = app_instance.setup(
         dataset=dataset,
         user_input=user_input,
-        kubectl_path=kubectl_path,
         data_class=data_class,
     )
 
     handle_test_mode(env_dict)
     add_env_variables_to_flow(app_instance, env_dict)
-    (
-        client,
-        gateway_host,
-        gateway_port,
-        gateway_host_internal,
-        gateway_port_internal,
-    ) = deploy_flow(
-        deployment_type=user_input.deployment_type,
+    (client, gateway_port, gateway_host_internal,) = deploy_flow(
         flow_yaml=app_instance.flow_yaml,
         env_dict=env_dict,
-        kubectl_path=kubectl_path,
     )
 
     # TODO at the moment the scheduler is not working. So we index the data right away
@@ -89,10 +78,8 @@ def run(
     index_docs(user_input, dataset, client)
 
     return (
-        gateway_host,
         gateway_port,
         gateway_host_internal,
-        gateway_port_internal,
     )
 
 
@@ -108,7 +95,7 @@ def trigger_scheduler(user_input, host):
         for i in range(
             100
         ):  # increase the probability that all replicas get the new key
-            update_api_keys(user_input.deployment_type, user_input.api_key, host)
+            update_api_keys(user_input.api_key, host)
 
     scheduler_params = {
         'flow_id': get_flow_id(host),

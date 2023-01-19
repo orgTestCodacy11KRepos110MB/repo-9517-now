@@ -2,7 +2,6 @@ import os
 from copy import deepcopy
 from typing import Dict, List, Optional, Tuple, TypeVar
 
-import docker
 from docarray import DocumentArray
 from jina import __version__ as jina_version
 from jina.jaml import JAML
@@ -83,33 +82,9 @@ class JinaNOWApp:
         raise NotImplementedError()
 
     @property
-    def required_docker_memory_in_gb(self) -> int:
-        """
-        Recommended memory limit for the docker client to run this app.
-        """
-        return 8
-
-    @property
     def finetune_datasets(self) -> [Tuple]:
         """Defines the list of demo datasets which are fine-tunable."""
         return ()
-
-    def _check_docker_mem_limit(self) -> bool:
-        mem_total = docker.from_env().info().get('MemTotal')
-        if (
-            mem_total is not None
-            and mem_total / 1e9 < self.required_docker_memory_in_gb
-        ):
-            print(
-                '🚨 Your docker container memory limit is set to ~{:.2f}GB'.format(
-                    mem_total / 1e9
-                )
-                + f' which is below the recommended limit of {self.required_docker_memory_in_gb}GB'
-                f' for the {self.app_name} app'
-            )
-            return False
-        else:
-            return True
 
     def set_app_parser(self, parser, formatter) -> None:
         """
@@ -130,19 +105,6 @@ class JinaNOWApp:
                         help=option.description,
                         type=str,
                     )
-
-    def _check_requirements(self) -> bool:
-        """
-        Returns true if all requirements on the system are satisfied. Else False.
-        """
-        return True
-
-    def run_checks(self, user_input: UserInput) -> bool:
-        req_check = self._check_requirements()
-        mem_check = True
-        if user_input.deployment_type != 'remote':
-            mem_check = self._check_docker_mem_limit()
-        return req_check and mem_check
 
     def get_executor_stubs(self, dataset, user_input, **kwargs) -> Dict:
         """
@@ -211,12 +173,9 @@ class JinaNOWApp:
                     if not executor.get('uses_with', None):
                         executor['uses_with'] = {}
                     executor['uses_with']['user_input_dict'] = user_input_dict
-                    if user_input.deployment_type == 'remote':
-                        executor['uses_with']['api_keys'] = '${{ ENV.API_KEY }}'
-                        executor['uses_with']['user_emails'] = '${{ ENV.USER_EMAILS }}'
-                        executor['uses_with'][
-                            'admin_emails'
-                        ] = '${{ ENV.ADMIN_EMAILS }}'
+                    executor['uses_with']['api_keys'] = '${{ ENV.API_KEY }}'
+                    executor['uses_with']['user_emails'] = '${{ ENV.USER_EMAILS }}'
+                    executor['uses_with']['admin_emails'] = '${{ ENV.ADMIN_EMAILS }}'
             self.flow_yaml = self.add_telemetry_env(flow_yaml_content)
 
         return common_env_dict

@@ -3,7 +3,6 @@ from typing import Dict, List, Tuple, TypeVar
 
 from docarray.typing import Image, Text, Video
 from jina import Client
-from jina.helper import random_port
 
 from now.app.base.app import JinaNOWApp
 from now.app.search_app.indexer_utils import check_if_ocr_needed
@@ -59,7 +58,6 @@ class SearchApp(JinaNOWApp):
         if (
             DEFAULT_EXAMPLE_HOSTED
             and user_input.dataset_name in DEFAULT_EXAMPLE_HOSTED
-            and user_input.deployment_type == 'remote'
             and 'NOW_EXAMPLES' not in os.environ
             and 'NOW_CI_RUN' not in os.environ
         ):
@@ -102,16 +100,14 @@ class SearchApp(JinaNOWApp):
         }
 
     @staticmethod
-    def clip_encoder_stub(user_input) -> Tuple[Dict, int]:
-        is_remote = user_input.deployment_type == 'remote'
+    def clip_encoder_stub() -> Tuple[Dict, int]:
         return {
             'name': 'encoderclip',
-            'uses': f'{EXECUTOR_PREFIX}CLIPOnnxEncoder/0.8.1'
-            + ('-gpu' if is_remote else ''),
-            'host': EXTERNAL_CLIP_HOST if is_remote else '0.0.0.0',
-            'port': 443 if is_remote else random_port(),
-            'tls': is_remote,
-            'external': is_remote,
+            'uses': f'{EXECUTOR_PREFIX}CLIPOnnxEncoder/0.8.1-gpu',
+            'host': EXTERNAL_CLIP_HOST,
+            'port': 443,
+            'tls': True,
+            'external': True,
             'uses_with': {'access_paths': ACCESS_PATHS, 'name': 'ViT-B-32::openai'},
             'env': {'JINA_LOG_LEVEL': 'DEBUG'},
             'needs': 'preprocessor',
@@ -180,7 +176,6 @@ class SearchApp(JinaNOWApp):
             self.autocomplete_stub(),
             self.preprocessor_stub(
                 use_high_perf_flow=get_email().split('@')[-1] == 'jina.ai'
-                and user_input.deployment_type == 'remote'
                 and not any(
                     _var in os.environ for _var in ['NOW_CI_RUN', 'NOW_TESTING']
                 )
@@ -201,7 +196,7 @@ class SearchApp(JinaNOWApp):
             in [Image, Video, Text]
             for field in user_input.index_fields
         ):
-            clip_encoder, clip_dim = self.clip_encoder_stub(user_input)
+            clip_encoder, clip_dim = self.clip_encoder_stub()
             encoder2dim[clip_encoder['name']] = clip_dim
             flow_yaml_executors.append(clip_encoder)
 

@@ -5,8 +5,7 @@ from now.admin.utils import get_default_request_body
 
 
 def get_request_body():
-    request_body = get_default_request_body('local', False, None)
-    request_body['host'] = HOST
+    request_body = get_default_request_body(host=HOST, secured=False)
     request_body['port'] = PORT
     return request_body
 

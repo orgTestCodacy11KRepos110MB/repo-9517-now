@@ -47,15 +47,12 @@ def test_disable_telemetry(disable):
     user_input.flow_name = 'flow'
     user_input.index_field_candidates_to_modalities = {'text': Text}
     user_input.index_fields = ['text']
-    user_input.deployment_type = 'local'
     user_input.app_instance = app
     da = DocumentArray(
         [Document(chunks=[Document(text='test. test', modality='text')])]
     )
 
-    app.setup(
-        dataset=da, user_input=user_input, kubectl_path='kube_path', data_class=None
-    )
+    app.setup(dataset=da, user_input=user_input, data_class=None)
 
     assert (
         app.flow_yaml['gateway']['env'].get('JINA_OPTOUT_TELEMETRY') == expected_value

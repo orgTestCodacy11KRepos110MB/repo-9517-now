@@ -1,19 +1,12 @@
 import os
 import pathlib
-import platform
 import sys
 import warnings
 from argparse import Namespace
-from os.path import expanduser as user
-
-import cpuinfo
-
 from now import __version__
 from now import __version__ as version
 from now.constants import SURVEY_LINK
-from now.deployment.deployment import cmd
 from now.run_all_k8s import start_now, stop_now
-from now.system_information import get_system_state
 
 warnings.filterwarnings("ignore")
 
@@ -75,52 +68,6 @@ def _is_latest_version(suppress_on_error=True):
             raise
 
 
-def _get_kind_path() -> str:
-    os_type = platform.system().lower()
-    # kind needs no distinction of architecture type
-    kind_path, _ = cmd('which kind')
-    kind_path = kind_path.strip()
-    if not kind_path:
-        if not os.path.exists(user('~/.cache/jina-now/kind')):
-            print('kind not found. Installing kind')
-            cmd(
-                f'/bin/bash {cur_dir}/scripts/install_kind.sh {os_type}',
-                std_output=True,
-            )
-        kind_path = user('~/.cache/jina-now/kind')
-    else:
-        kind_path = kind_path.decode('utf-8')
-    return kind_path
-
-
-def _get_kubectl_path() -> str:
-    os_type = platform.system().lower()
-    arch = 'x86_64'
-    if os_type == 'darwin':
-        if 'm1' in cpuinfo.get_cpu_info().get('brand_raw').lower():
-            arch = 'arm64'
-        else:
-            arch = platform.machine()
-    elif os_type == 'linux':
-        arch = platform.machine()
-
-    # kubectl needs `intel` or `m1` for apple os
-    # for linux no need of architecture type
-    kubectl_path, _ = cmd('which kubectl')
-    kubectl_path = kubectl_path.strip()
-    if not kubectl_path:
-        if not os.path.isfile(user('~/.cache/jina-now/kubectl')):
-            print('kubectl not found. Installing kubectl')
-            cmd(
-                f'/bin/bash {cur_dir}/scripts/install_kubectl.sh {os_type} {arch}',
-                std_output=True,
-            )
-        kubectl_path = user('~/.cache/jina-now/kubectl')
-    else:
-        kubectl_path = kubectl_path.decode('utf-8')
-    return kubectl_path
-
-
 def get_task(kwargs):
     for x in ['cli', 'now']:
         if x in kwargs:
@@ -133,26 +80,14 @@ def cli(args=None):
     os.environ['JINA_LOG_LEVEL'] = 'CRITICAL'
     print_version_line()
     kwargs = parse_args(args)
-    arch, os_type = get_environment_type()
-
-    kwargs['kubectl_path'] = _get_kubectl_path()
-    kwargs['kind_path'] = _get_kind_path()
-
-    contexts, active_context = get_system_state(**kwargs)
     task = get_task(kwargs)
     if '--version' in sys.argv[1:]:
         print(__version__)
         exit(0)
     if task == 'start':
-        return start_now(
-            contexts=contexts,
-            active_context=active_context,
-            os_type=os_type,
-            arch=arch,
-            **kwargs,
-        )
+        return start_now(**kwargs)
     elif task == 'stop':
-        return stop_now(contexts, active_context, **kwargs)
+        return stop_now(**kwargs)
     elif task == 'survey':
         import webbrowser
 
@@ -171,19 +106,6 @@ def parse_args(args):
 def print_version_line():
     if len(sys.argv) != 1 and not ('-h' in sys.argv[1:] or '--help' in sys.argv[1:]):
         print(f'Initialising Jina NOW v{version} ...')
-
-
-def get_environment_type():
-    os_type = platform.system().lower()
-    arch = 'x86_64'
-    if os_type == 'darwin':
-        if 'm1' in cpuinfo.get_cpu_info().get('brand_raw').lower():
-            arch = 'arm64'
-        else:
-            arch = platform.machine()
-    elif os_type == 'linux':
-        arch = platform.machine()
-    return arch, os_type
 
 
 if __name__ == '__main__':

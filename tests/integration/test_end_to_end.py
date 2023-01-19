@@ -8,12 +8,10 @@ import requests
 from docarray import DocumentArray
 
 from now.admin.utils import get_default_request_body
-from now.cli import _get_kind_path, _get_kubectl_path, cli
-from now.cloud_manager import create_local_cluster
-from now.common.options import NEW_CLUSTER
+from now.cli import cli
 from now.constants import DatasetTypes
 from now.demo_data import DemoDatasetNames
-from now.deployment.deployment import cmd, list_all_wolf
+from now.deployment.deployment import list_all_wolf
 
 
 @pytest.fixture
@@ -28,99 +26,46 @@ def test_token_exists():
     list_all_wolf()
 
 
-@pytest.mark.remote
 @pytest.mark.parametrize(
-    'query_fields, index_fields, filter_fields, dataset, deployment_type',
-    [
-        (
-            'text',
-            ['image'],
-            ['label'],
-            DemoDatasetNames.BEST_ARTWORKS,
-            'remote',
-        ),
-    ],
-)
-@pytest.mark.timeout(60 * 10)
-def test_end_to_end_remote(
-    dataset: str,
-    deployment_type: str,
-    test_search_image,
-    cleanup,
-    query_fields,
-    index_fields,
-    filter_fields,
-    with_hubble_login_patch,
-):
-    run_end_to_end(
-        cleanup,
-        dataset,
-        deployment_type,
-        query_fields,
-        index_fields,
-        filter_fields,
-        test_search_image,
-    )
-
-
-@pytest.mark.parametrize(
-    'query_fields, index_fields, filter_fields, dataset, deployment_type',
+    'query_fields, index_fields, filter_fields, dataset',
     [
         (
             'image',
             ['image'],
             ['label'],
             DemoDatasetNames.BIRD_SPECIES,
-            'local',
         ),
         (
             'text',
             ['lyrics'],
             [],
             DemoDatasetNames.POP_LYRICS,
-            'local',
         ),
         (
             'text',
             ['video', 'description'],
             [],
             DemoDatasetNames.TUMBLR_GIFS_10K,
-            'local',
+        ),
+        (
+            'text',
+            ['image'],
+            ['label'],
+            DemoDatasetNames.BEST_ARTWORKS,
         ),
     ],
 )
 @pytest.mark.timeout(60 * 10)
-def test_end_to_end_local(
-    dataset: str,
-    deployment_type: str,
-    test_search_image,
+def test_end_to_end(
     cleanup,
+    start_bff,
+    start_playground,
     query_fields,
     index_fields,
     filter_fields,
-    with_hubble_login_patch,
-):
-    run_end_to_end(
-        cleanup,
-        dataset,
-        deployment_type,
-        query_fields,
-        index_fields,
-        filter_fields,
-        test_search_image,
-    )
-
-
-def run_end_to_end(
-    cleanup,
     dataset,
-    deployment_type,
-    query_fields,
-    index_fields,
-    filter_fields,
     test_search_image,
 ):
-    cluster = NEW_CLUSTER['value']
     kwargs = {
         'now': 'start',
         'flow_name': 'nowapi',
@@ -129,31 +74,21 @@ def run_end_to_end(
         'index_fields': index_fields,
         'filter_fields': filter_fields,
         'dataset_name': dataset,
-        'cluster': cluster,
-        'secured': deployment_type == 'remote',
+        'secured': True,
         'api_key': None,
         'additional_user': False,
-        'deployment_type': deployment_type,
         'proceed': True,
     }
-    # need to create local cluster and namespace to deploy playground and bff for WOLF deployment
-    if deployment_type == 'remote':
-        kind_path = _get_kind_path()
-        create_local_cluster(kind_path, **kwargs)
-        kubectl_path = _get_kubectl_path()
-        cmd(f'{kubectl_path} create namespace nowapi')
     kwargs = Namespace(**kwargs)
     response = cli(args=kwargs)
-    # Dump the flow details from response host to a tmp file if the deployment is remote
-    if deployment_type == 'remote':
-        flow_details = {'host': response['host']}
-        with open(f'{cleanup}/flow_details.json', 'w') as f:
-            json.dump(flow_details, f)
+    # Dump the flow details from response host to a tmp file
+    flow_details = {'host': response['host']}
+    with open(f'{cleanup}/flow_details.json', 'w') as f:
+        json.dump(flow_details, f)
 
-    assert_deployment_response(deployment_type, response)
+    assert_deployment_response(response)
     assert_deployment_queries(
         dataset=dataset,
-        deployment_type=deployment_type,
         query_fields=query_fields,
         kwargs=kwargs,
         test_search_image=test_search_image,
@@ -163,13 +98,12 @@ def run_end_to_end(
         host = response.get('host')
         request_body = get_search_request_body(
             dataset=dataset,
-            deployment_type=deployment_type,
             kwargs=kwargs,
             test_search_image=test_search_image,
             host=host,
             search_modality='text',
         )
-        suggest_url = f'http://localhost:30090/api/v1/search-app/suggestion'
+        suggest_url = f'http://localhost:8080/api/v1/search-app/suggestion'
         assert_suggest(suggest_url, request_body)
 
 
@@ -206,19 +140,17 @@ def assert_suggest(suggest_url, request_body):
 
 def assert_deployment_queries(
     dataset,
-    deployment_type,
     query_fields,
     kwargs,
     test_search_image,
     response,
 ):
-    port = response.get('bff_port') if os.environ.get('NOW_TESTING', False) else '30090'
+    port = response.get('bff_port') if os.environ.get('NOW_TESTING', False) else '8080'
     url = f'http://localhost:{port}/api/v1'
     host = response.get('host')
     # normal case
     request_body = get_search_request_body(
         dataset=dataset,
-        deployment_type=deployment_type,
         kwargs=kwargs,
         test_search_image=test_search_image,
         host=host,
@@ -229,9 +161,7 @@ def assert_deployment_queries(
 
     if kwargs.secured:
         # test add email
-        request_body = get_default_request_body(
-            deployment_type, kwargs.secured, remote_host=host
-        )
+        request_body = get_default_request_body(secured=kwargs.secured, host=host)
         request_body['user_emails'] = ['florian.hoenicke@jina.ai']
         response = requests.post(
             f'{url}/admin/updateUserEmails',
@@ -253,7 +183,6 @@ def assert_deployment_queries(
         # the same search should work now
         request_body = get_search_request_body(
             dataset=dataset,
-            deployment_type=deployment_type,
             kwargs=kwargs,
             test_search_image=test_search_image,
             host=host,
@@ -269,15 +198,12 @@ def assert_deployment_queries(
 
 def get_search_request_body(
     dataset,
-    deployment_type,
     kwargs,
     test_search_image,
     host,
     search_modality,
 ):
-    request_body = get_default_request_body(
-        deployment_type, kwargs.secured, remote_host=host
-    )
+    request_body = get_default_request_body(host=host, secured=kwargs.secured)
     request_body['limit'] = 9
     # Perform end-to-end check via bff
     if search_modality == 'text':
@@ -297,22 +223,18 @@ def get_search_request_body(
     return request_body
 
 
-def assert_deployment_response(deployment_type, response):
-    assert response['bff'] == f'http://localhost:30090/api/v1/search-app/docs'
-    assert response['playground'].startswith('http://localhost:30080/?')
-    if deployment_type == 'local':
-        assert response['host'] == 'gateway.nowapi.svc.cluster.local'
-    else:
-        assert response['host'].startswith('grpcs://')
-        assert response['host'].endswith('.wolf.jina.ai')
-    assert response['port'] == 8080 or response['port'] is None
+def assert_deployment_response(response):
+    assert response['bff'] == 'http://localhost:8080/api/v1/search-app/docs'
+    assert response['playground'].startswith('http://localhost/')
+    assert response['host'].startswith('grpcs://')
+    assert response['host'].endswith('.wolf.jina.ai')
 
 
-@pytest.mark.parametrize('deployment_type', ['remote'])
 @pytest.mark.parametrize('dataset', ['custom_s3_bucket'])
 @pytest.mark.parametrize('query_fields', ['image'])
 def test_backend_custom_data(
-    deployment_type: str,
+    start_bff,
+    start_playground,
     dataset: str,
     query_fields: str,
     cleanup,
@@ -328,27 +250,18 @@ def test_backend_custom_data(
         'aws_region_name': 'eu-west-1',
         'index_fields': ['.jpeg'],
         'filter_fields': [],
-        'cluster': NEW_CLUSTER['value'],
-        'deployment_type': deployment_type,
         'proceed': True,
         'secured': False,
     }
-
-    kind_path = _get_kind_path()
-    create_local_cluster(kind_path, **kwargs)
-    kubectl_path = _get_kubectl_path()
-    cmd(f'{kubectl_path} create namespace nowapi')
-
     kwargs = Namespace(**kwargs)
     response = cli(args=kwargs)
 
     # Dump the flow details from response host to a tmp file for post cleanup
-    if deployment_type == 'remote':
-        flow_details = {'host': response['host']}
-        with open(f'{cleanup}/flow_details.json', 'w') as f:
-            json.dump(flow_details, f)
+    flow_details = {'host': response['host']}
+    with open(f'{cleanup}/flow_details.json', 'w') as f:
+        json.dump(flow_details, f)
 
-    assert_deployment_response(deployment_type, response)
+    assert_deployment_response(response)
 
     assert_search_custom_s3(host=response['host'], create_temp_link=False)
     assert_search_custom_s3(host=response['host'], create_temp_link=True)
@@ -363,7 +276,7 @@ def assert_search_custom_s3(host, create_temp_link=False):
     }
 
     response = requests.post(
-        f'http://localhost:30090/api/v1/search-app/search',
+        f'http://localhost:8080/api/v1/search-app/search',
         json=request_body,
     )
 
