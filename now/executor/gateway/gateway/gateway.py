@@ -10,7 +10,6 @@ from jina.serve.runtimes.gateway.http.fastapi import FastAPIBaseGateway
 from jina.serve.runtimes.gateway.http.models import JinaHealthModel
 from streamlit.web.server import Server as StreamlitServer
 
-from now.constants import CG_BFF_PORT
 from now.executor.gateway.gateway.bff.app.app import application
 
 cur_dir = os.path.dirname(__file__)
@@ -31,7 +30,7 @@ class PlaygroundGateway(Gateway):
         # streamlit.web.bootstrap._install_pages_watcher(self.streamlit_script)
         self.streamlit_server = StreamlitServer(
             os.path.join(cur_dir, self.streamlit_script),
-            f'"python -m streamlit" run --browser.serverPort 12983 {self.streamlit_script}',
+            f'"python -m streamlit" run --browser.serverPort 12983 {self.streamlit_script} --server.address=0.0.0.0',
         )
 
     async def run_server(self):
@@ -55,12 +54,13 @@ class BFFGateway(FastAPIBaseGateway):
 
 
 class NOWGateway(CompositeGateway):
-    def __init__(self, playground_port=8501, bff_port=CG_BFF_PORT, **kwargs):
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
+        self.gateways = self.gateways[:1]
         # note order is important
-        self._add_gateway(BFFGateway, bff_port, **kwargs)
-        self._add_gateway(PlaygroundGateway, playground_port, **kwargs)
+        self._add_gateway(BFFGateway, self.ports[1], **kwargs)
+        self._add_gateway(PlaygroundGateway, self.ports[2], **kwargs)
 
     def _add_gateway(self, gateway_cls, port, protocol='http', **kwargs):
         # ignore metrics_registry since it is not copyable
@@ -103,23 +103,25 @@ if __name__ == '__main__':
                 )
             return docs
 
-    # f = (
-    #     Flow().config_gateway(
-    #         # uses=f'jinahub+docker://2m00g87k/{NOW_GATEWAY_VERSION}',
-    #         uses=NOWGateway,
-    #         protocol=['grpc'],
-    #         monitoring=True,
-    #     )
-    #     # .add(uses=DummyEncoder, name='encoder')
-    # )
-    f = Flow.load_config('/Users/joschkabraun/dev/jina_work/now/flow.yml')
+    f = (
+        Flow().config_gateway(
+            # uses=f'jinahub+docker://2m00g87k/{NOW_GATEWAY_VERSION}',
+            uses=NOWGateway,
+            protocol=['http', 'http', 'http'],
+            port=[8081, 8080, 8501],
+            monitoring=True,
+        )
+        # .add(uses=DummyEncoder, name='encoder')
+    )
+    # f = Flow.load_config('/Users/joschkabraun/dev/jina_work/now/flow.yml')
+    # f.to_k8s_yaml('tmp')
 
     with f:
-        # f.block()
-        print('start')
-        result = f.post(on='/search', inputs=Document(text='test'))
-        result.summary()
-        result[0].matches.summary()
-        result[0].matches[0].summary()
+        f.block()
+        # print('start')
+        # result = f.post(on='/search', inputs=Document(text='test'))
+        # result.summary()
+        # result[0].matches.summary()
+        # result[0].matches[0].summary()
 
     # print('done')
