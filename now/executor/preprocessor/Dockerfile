@@ -11,6 +11,8 @@ RUN pip install --compile -r requirements.txt
 # install latest code changes of the now repo without the requirements installed already
 RUN pip install git+https://github.com/jina-ai/now@JINA_NOW_COMMIT_SHA --no-dependencies
 
+RUN pip install git+https://github.com/jina-ai/jina@main
+
 # setup the workspace
 COPY . /workdir/
 WORKDIR /workdir
