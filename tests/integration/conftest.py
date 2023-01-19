@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import tempfile
@@ -5,14 +6,13 @@ import time
 from multiprocessing import Process
 
 import hubble
-import json
 import pytest
 from pytest_mock import MockerFixture
 
-from deployment.bff.app.app import run_server
-from deployment.playground.playground import deploy_streamlit
-from now.utils import get_flow_id
 from now.deployment.deployment import terminate_wolf
+from now.executor.gateway.gateway.bff.app.app import run_server
+from now.executor.gateway.gateway.playground.playground import deploy_streamlit
+from now.utils import get_flow_id
 
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(__name__)
