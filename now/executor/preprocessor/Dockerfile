@@ -1,4 +1,4 @@
-FROM jinaai/jina:3.13.2-dev31-py311-standard
+FROM jinaai/jina:3.13.2-dev31-py38-standard
 #FROM jinaai/jina:3.13.2
 
 RUN apt-get update && apt-get install -y git &&\
