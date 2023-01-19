@@ -10,7 +10,7 @@ RUN pip install --compile -r requirements.txt
 RUN pip install git+https://github.com/jina-ai/now@JINA_NOW_COMMIT_SHA --no-dependencies
 
 # RUN pip install "jina==3.13.2.dev34"
-RUN pip install git+https://github.com/jina-ai/jina@master
+RUN pip install -U git+https://github.com/jina-ai/jina@master
 
 # setup the workspace
 COPY . /workdir/
