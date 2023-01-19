@@ -12,6 +12,7 @@ from now.constants import DatasetTypes
 from now.data_loading.create_dataclass import (
     create_dataclass,
     create_dataclass_fields_file_mappings,
+    update_dict_with_no_overwrite,
 )
 from now.data_loading.data_loading import (
     _list_files_from_s3_bucket,
@@ -94,7 +95,9 @@ def test_da_local_path_image_folder(image_resource_path: str):
 
     user_input.index_fields = ['a.jpg']
     user_input.index_field_candidates_to_modalities = {'a.jpg': Image}
-    data_class = create_dataclass(user_input)
+    data_class, user_input.field_names_to_dataclass_fields = create_dataclass(
+        user_input=user_input
+    )
     loaded_da = load_data(user_input, data_class)
 
     assert len(loaded_da) == 2, (
@@ -132,7 +135,9 @@ def test_from_files_local(resources_folder_path):
         user_input.index_fields, user_input.index_field_candidates_to_modalities
     )
 
-    data_class = create_dataclass(user_input)
+    data_class, user_input.field_names_to_dataclass_fields = create_dataclass(
+        user_input=user_input
+    )
     loaded_da = from_files_local(
         user_input.dataset_path,
         user_input.index_fields,
@@ -166,7 +171,14 @@ def test_from_subfolders_s3(get_aws_info):
         'title': str,
     }
 
-    data_class = create_dataclass(user_input)
+    all_modalities = {}
+    all_modalities.update(user_input.index_field_candidates_to_modalities)
+    update_dict_with_no_overwrite(
+        all_modalities, user_input.filter_field_candidates_to_modalities
+    )
+    data_class, user_input.field_names_to_dataclass_fields = create_dataclass(
+        user_input=user_input
+    )
 
     loaded_da = _list_files_from_s3_bucket(user_input, data_class)
     assert len(loaded_da) == 2

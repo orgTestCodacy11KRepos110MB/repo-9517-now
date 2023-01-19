@@ -30,7 +30,7 @@ def test_docarray(monkeypatch, setup_service_running, multi_modal_data):
     assert index_result == DocumentArray()
     search_result = search(
         SearchRequestModel(
-            query={'query_text': {'text': 'girl on motorbike'}},
+            query=[{'name': 'text', 'value': 'girl on motorbike', 'modality': 'text'}],
         )
     )
     assert search_result[0].fields['product_title'].text == 'fancy title'

@@ -39,7 +39,7 @@ def test_add_key(setup_service_running, random_index_name, tmpdir):
         index_data(f, jwt=get_request_body()['jwt'])
 
         request_body = get_request_body()
-        print('# Test adding user email')
+        # Test adding user email
         request_body['user_emails'] = ['florian.hoenicke@jina.ai']
         response = requests.post(
             update_emails_url,
@@ -47,10 +47,12 @@ def test_add_key(setup_service_running, random_index_name, tmpdir):
         )
         assert response.status_code == 200
 
-        print('# test api keys')
-        print('# search with invalid api key')
+        # test api keys
+        # search with invalid api key
         request_body = get_request_body()
-        request_body['query'] = {'query_text': {'text': 'girl on motorbike'}}
+        request_body['query'] = [
+            {'name': 'text', 'value': 'girl on motorbike', 'modality': 'text'}
+        ]
         del request_body['jwt']
         request_body['api_key'] = API_KEY
         request_body['limit'] = 9

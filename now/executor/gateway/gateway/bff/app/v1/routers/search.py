@@ -1,10 +1,10 @@
 import base64
 from typing import List
 
-from docarray import Document, dataclass, field
-from docarray.typing import Image, Text, Video
+from docarray import Document
 from fastapi import APIRouter
 
+from now.data_loading.create_dataclass import create_dataclass
 from now.executor.gateway.gateway.bff.app.v1.models.search import (
     SearchRequestModel,
     SearchResponseModel,
@@ -14,6 +14,7 @@ from now.executor.gateway.gateway.bff.app.v1.routers.helper import (
     field_dict_to_mm_doc,
     jina_client_post,
 )
+from now.utils import modality_string_to_docarray_typing
 
 router = APIRouter()
 
@@ -24,14 +25,27 @@ router = APIRouter()
     summary='Search data via query',
 )
 async def search(data: SearchRequestModel):
-    # temporary class until actual mm docs are created.
-    @dataclass
-    class MMQueryDoc:
-        query_text: Text = field(default=None)
-        query_image: Image = field(default=None)
-        query_video: Video = field(default=None)
+    fields_modalities_mapping = {}
+    fields_values_mapping = {}
 
-    query_doc = field_dict_to_mm_doc(data.query, data_class=MMQueryDoc)
+    if len(data.query) == 0:
+        raise ValueError('Query cannot be empty')
+
+    for field in data.query:
+        fields_modalities_mapping[field['name']] = modality_string_to_docarray_typing(
+            field['modality']
+        )
+        fields_values_mapping[field['name']] = field['value']
+    data_class, field_names_to_dataclass_fields = create_dataclass(
+        fields=list(fields_modalities_mapping.keys()),
+        fields_modalities=fields_modalities_mapping,
+    )
+    query_doc = field_dict_to_mm_doc(
+        fields_values_mapping,
+        data_class=data_class,
+        modalities_dict=fields_modalities_mapping,
+        field_names_to_dataclass_fields=field_names_to_dataclass_fields,
+    )
 
     query_filter = {}
     for key, value in data.filters.items():

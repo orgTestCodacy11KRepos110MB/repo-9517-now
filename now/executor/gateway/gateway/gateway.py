@@ -103,16 +103,16 @@ if __name__ == '__main__':
                 )
             return docs
 
-    f = (
-        Flow().config_gateway(
-            # uses=f'jinahub+docker://2m00g87k/{NOW_GATEWAY_VERSION}',
-            uses=NOWGateway,
-            protocol=['grpc'],
-            monitoring=True,
-        )
-        # .add(uses=DummyEncoder, name='encoder')
-    )
-    # f = Flow.load_config('/Users/joschkabraun/dev/jina_work/now/flow.yml')
+    # f = (
+    #     Flow().config_gateway(
+    #         # uses=f'jinahub+docker://2m00g87k/{NOW_GATEWAY_VERSION}',
+    #         uses=NOWGateway,
+    #         protocol=['grpc'],
+    #         monitoring=True,
+    #     )
+    #     # .add(uses=DummyEncoder, name='encoder')
+    # )
+    f = Flow.load_config('/Users/joschkabraun/dev/jina_work/now/flow.yml')
 
     with f:
         # f.block()

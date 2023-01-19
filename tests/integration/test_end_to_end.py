@@ -188,8 +188,7 @@ def assert_search(search_url, request_body, expected_status_code=200):
 
 def assert_suggest(suggest_url, request_body):
     old_request_text = request_body.pop('query')
-    old_request_text = list(old_request_text.values())[0]['text']
-    request_body['text'] = old_request_text[0]
+    request_body['text'] = old_request_text[0]['value']
     response = requests.post(
         suggest_url,
         json=request_body,
@@ -199,9 +198,9 @@ def assert_suggest(suggest_url, request_body):
     ), f"Received code {response.status_code} with text: {response.json()['message']}"
     docs = DocumentArray.from_json(response.content)
     assert 'suggestions' in docs[0].tags, f'No suggestions found in {docs[0].tags}'
-    assert docs[0].tags['suggestions'] == [old_request_text], (
-        f'Expected suggestions to be {old_request_text} but got '
-        f'{docs[0].tags["suggestions"]}'
+    assert docs[0].tags['suggestions'] == [old_request_text[0]['value']], (
+        f"Expected suggestions to be {old_request_text[0]['value']} but got "
+        f"{docs[0].tags['suggestions']}"
     )
 
 
@@ -288,9 +287,13 @@ def get_search_request_body(
             search_text = 'laser eyes'
         else:
             search_text = 'test'
-        request_body['query'] = {'query_text': {'text': search_text}}
+        request_body['query'] = [
+            {'name': 'text', 'value': search_text, 'modality': 'text'}
+        ]
     elif search_modality == 'image':
-        request_body['query'] = {'query_image': {'blob': test_search_image}}
+        request_body['query'] = [
+            {'name': 'blob', 'value': test_search_image, 'modality': 'image'}
+        ]
     return request_body
 
 
@@ -353,7 +356,7 @@ def test_backend_custom_data(
 
 def assert_search_custom_s3(host, create_temp_link=False):
     request_body = {
-        'query': {'query_text': {'text': 'test'}},
+        'query': [{'name': 'text', 'value': 'Hello', 'modality': 'text'}],
         'limit': 9,
         'host': host,
         'create_temp_link': create_temp_link,

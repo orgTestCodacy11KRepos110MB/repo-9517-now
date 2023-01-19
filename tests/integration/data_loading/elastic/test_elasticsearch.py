@@ -17,7 +17,9 @@ def test_elasticsearch_data_loading(setup_online_shop_db, es_connection_params):
     user_input.filter_fields = ['text']
     user_input.index_field_candidates_to_modalities = {'title': Text}
     user_input.filter_field_candidates_to_modalities = {'text': str}
-    data_class = create_dataclass(user_input)
+    data_class, user_input.field_names_to_dataclass_fields = create_dataclass(
+        user_input=user_input
+    )
     user_input.es_host_name = connection_str
 
     transformed_docs = load_data(user_input=user_input, data_class=data_class)

@@ -3,10 +3,11 @@ import itertools
 import os
 from copy import deepcopy
 from tempfile import TemporaryDirectory
-from typing import Union
+from typing import Dict, Type, Union
 
 import filetype
 from docarray import Document, DocumentArray
+from docarray.typing import Text
 from fastapi import HTTPException, status
 from jina.excepts import BadServer, BadServerFlow
 from jina.serve.streamer import GatewayStreamer
@@ -16,38 +17,44 @@ from now.utils import get_flow_id
 
 
 def field_dict_to_mm_doc(
-    field_dict: dict, data_class: type, field_names_to_dataclass_fields={}
+    field_dict: Dict,
+    data_class: Type,
+    modalities_dict: Dict,
+    field_names_to_dataclass_fields={},
 ) -> Document:
     """Converts a dictionary of field names to their values to a document.
 
     :param field_dict: key-value pairs of field names and their values
     :param data_class: @docarray.dataclass class which encapsulates the fields of the multimodal document
+    :param modalities_dict: dictionary of field names to their modalities
     :param field_names_to_dataclass_fields: mapping of field names to data class fields (e.g. {'title': 'text_0'})
     :return: multi-modal document
     """
-    if len(field_dict) != 1:
-        raise ValueError(
-            f"Multi-modal document isn't supported yet. "
-            f"Can only set one value but have {list(field_dict.keys())}"
-        )
 
     with TemporaryDirectory() as tmp_dir:
         try:
             if field_names_to_dataclass_fields:
                 field_dict_orig = deepcopy(field_dict)
+                modalities_dict_orig = deepcopy(modalities_dict)
                 field_dict = {
                     field_name_data_class: field_dict_orig[file_name]
+                    for file_name, field_name_data_class in field_names_to_dataclass_fields.items()
+                }
+                modalities_dict = {
+                    field_name_data_class: modalities_dict_orig[file_name]
                     for file_name, field_name_data_class in field_names_to_dataclass_fields.items()
                 }
             data_class_kwargs = {}
             for field_name_data_class, field_value in field_dict.items():
                 # save blob into a temporary file such that it can be loaded by the multimodal class
-                if field_value.blob:
-                    base64_decoded = base64.b64decode(field_value.blob.encode('utf-8'))
+                if modalities_dict[
+                    field_name_data_class
+                ] != Text and not field_value.startswith('http'):
+                    base64_decoded = base64.b64decode(field_value.encode('utf-8'))
                     file_ending = filetype.guess(base64_decoded)
-                    if file_ending is None:
+                    if not file_ending:
                         raise ValueError(
-                            f'Could not guess file type of blob {field_value.blob}. '
+                            f'Could not guess file type of blob {field_value}. '
                             f'Please provide a valid file type.'
                         )
                     file_ending = file_ending.extension
@@ -63,10 +70,9 @@ def field_dict_to_mm_doc(
                     )
                     with open(file_path, 'wb') as f:
                         f.write(base64_decoded)
-                    field_value.blob = None
-                    field_value.uri = file_path
-                if field_value.content is not None:
-                    data_class_kwargs[field_name_data_class] = field_value.content
+                    field_value = file_path
+                if field_value:
+                    data_class_kwargs[field_name_data_class] = field_value
                 else:
                     raise ValueError(
                         f'Content of field {field_name_data_class} is None. '

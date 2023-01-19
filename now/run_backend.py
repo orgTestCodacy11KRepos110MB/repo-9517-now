@@ -48,7 +48,9 @@ def run(
         }
         data_class = None
     else:
-        data_class = create_dataclass(user_input)
+        data_class, user_input.field_names_to_dataclass_fields = create_dataclass(
+            user_input=user_input
+        )
     dataset = load_data(user_input, data_class)
 
     # Set up the app specific flow and also get the environment variables and its values

@@ -31,12 +31,14 @@ class SearchRequestModel(BaseRequestModel):
         default={},
         description='dictionary with filters for search results  {"tag_name" : "tag_value"}',
     )
-    query: Dict[str, ModalityModel] = Field(
+    query: List[Dict] = Field(
         default={},
-        description='Nested dictionary where key can be only one of the following: ``query_text``, ``query_image``, '
-        'or ``query_video`` for a query with text, image, or video respectively, and the value is a '
-        'dictionary with either uri, blob, or text as key. '
-        'E.g., ``{"query_image": {"uri": "https://example.com/image.jpg"}``',
+        description='List of dictionaries with query fields {"name": "field_name", "modality": "modality", "value": '
+        '"value"}. Each dictionary represents a field in the query. Each dictionary must have a name, '
+        'modality and value. The name is the name of the field in the data. The modality is the modality '
+        'of the field. The value is the value of the field in the query. '
+        'Example: [{"name": "title", "modality": "text", "value": "hello world"},'
+        '          {"name": "image", "modality": "image", "value": "https://example.com/image.jpg"}]',
     )
     create_temp_link: bool = Field(
         default=False,
