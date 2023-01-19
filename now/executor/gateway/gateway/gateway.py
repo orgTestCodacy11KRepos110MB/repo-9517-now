@@ -1,6 +1,7 @@
 import copy
 import os
 
+import jina
 import streamlit.web.bootstrap
 from docarray import Document, DocumentArray, dataclass
 from docarray.typing import Text
@@ -56,6 +57,7 @@ class BFFGateway(FastAPIBaseGateway):
 class NOWGateway(CompositeGateway):
     def __init__(self, playground_port=8501, bff_port=CG_BFF_PORT, **kwargs):
         super().__init__(**kwargs)
+        print(f'jina version: {jina.__version__}')
 
         # note order is important
         self._add_gateway(BFFGateway, bff_port, **kwargs)
