@@ -32,7 +32,7 @@ def get_suggestion(text, jwt):
     )
 
 
-def call_flow(url_host, data, domain, endpoint):
+def call_flow(url_host, data, endpoint):
     st.session_state.search_count += 1
     response = requests.post(
         url_host, json=data, headers={"Content-Type": "application/json; charset=utf-8"}
@@ -142,4 +142,4 @@ def multimodal_search(
     if params.port:
         data['port'] = params.port
     print(data)
-    return call_flow(URL_HOST, data, domain, endpoint)
+    return call_flow(URL_HOST, data, endpoint)
