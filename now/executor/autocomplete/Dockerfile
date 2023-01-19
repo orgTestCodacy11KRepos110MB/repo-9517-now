@@ -1,4 +1,4 @@
-FROM jinaai/jina:3-py38-perf
+FROM jinaai/jina:3.13.2-dev31-py38-standard
 
 RUN apt-get update && apt-get install --no-install-recommends -y git && rm -rf /var/lib/apt/lists/*
 
