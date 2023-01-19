@@ -1,5 +1,5 @@
 pyfiglet==0.8.post1
-git+https://github.com/jina-ai/jina@master
+jina[perf]>=3.13.2.dev31
 jina-hubble-sdk>=0.15.5
 pyfiglet==0.8.post1
 cowsay==4.0
