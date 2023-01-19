@@ -1,7 +1,5 @@
-import copy
 import os
 
-import jina
 import streamlit.web.bootstrap
 from docarray import Document, DocumentArray, dataclass
 from docarray.typing import Text
@@ -11,7 +9,7 @@ from jina.serve.runtimes.gateway.http.fastapi import FastAPIBaseGateway
 from jina.serve.runtimes.gateway.http.models import JinaHealthModel
 from streamlit.web.server import Server as StreamlitServer
 
-from now.constants import CG_BFF_PORT, NOW_GATEWAY_VERSION
+from now.constants import CG_BFF_PORT
 from now.executor.gateway.gateway.bff.app.app import application
 
 cur_dir = os.path.dirname(__file__)
@@ -57,19 +55,22 @@ class BFFGateway(FastAPIBaseGateway):
 class NOWGateway(CompositeGateway):
     def __init__(self, playground_port=8501, bff_port=CG_BFF_PORT, **kwargs):
         super().__init__(**kwargs)
-        print(f'jina version: {jina.__version__}')
 
         # note order is important
         self._add_gateway(BFFGateway, bff_port, **kwargs)
         self._add_gateway(PlaygroundGateway, playground_port, **kwargs)
 
     def _add_gateway(self, gateway_cls, port, protocol='http', **kwargs):
-        runtime_args = copy.deepcopy(self.runtime_args)
+        # ignore metrics_registry since it is not copyable
+        runtime_args = self._deepcopy_with_ignore_attrs(
+            self.runtime_args, ['metrics_registry']
+        )
         runtime_args.port = [port]
         runtime_args.protocol = [protocol]
-        gateway_kwargs = copy.deepcopy(kwargs)
+        gateway_kwargs = {k: v for k, v in kwargs.items() if k != 'runtime_args'}
         gateway_kwargs['runtime_args'] = dict(vars(runtime_args))
         gateway = gateway_cls(**gateway_kwargs)
+        gateway.streamer = self.streamer
         self.gateways.insert(0, gateway)
 
 
@@ -101,13 +102,15 @@ if __name__ == '__main__':
             return docs
 
     f = (
-        Flow()
-        .config_gateway(
-            uses=f'jinahub+docker://2m00g87k/{NOW_GATEWAY_VERSION}',
+        Flow().config_gateway(
+            # uses=f'jinahub+docker://2m00g87k/{NOW_GATEWAY_VERSION}',
+            uses=NOWGateway,
             protocol=['grpc'],
+            monitoring=True,
         )
-        .add(uses=DummyEncoder, name='encoder')
+        # .add(uses=DummyEncoder, name='encoder')
     )
+    # f = Flow.load_config('/Users/joschkabraun/dev/jina_work/now/flow.yml')
 
     with f:
         # f.block()
