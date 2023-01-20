@@ -10,7 +10,9 @@ from jina.serve.runtimes.gateway.http.fastapi import FastAPIBaseGateway
 from jina.serve.runtimes.gateway.http.models import JinaHealthModel
 from streamlit.web.server import Server as StreamlitServer
 
+from now.constants import EXTERNAL_CLIP_HOST
 from now.executor.gateway.gateway.bff.app.app import application
+from now.executor.preprocessor import NOWPreprocessor
 
 cur_dir = os.path.dirname(__file__)
 
@@ -57,10 +59,32 @@ class NOWGateway(CompositeGateway):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self.gateways = self.gateways[:1]
+        # self.gateways = self.gateways[:1]
+        # del kwargs['runtime_args']['protocol']
+        # del kwargs['runtime_args']['port']
         # note order is important
-        self._add_gateway(BFFGateway, self.ports[1], **kwargs)
-        self._add_gateway(PlaygroundGateway, self.ports[2], **kwargs)
+        self._add_gateway(BFFGateway, 8080, **kwargs)
+        self._add_gateway(PlaygroundGateway, 8501, **kwargs)
+
+        # self.setup_nginx()
+
+    def setup_nginx(self):
+        import subprocess
+
+        try:
+            subprocess.Popen(
+                [
+                    'nginx',
+                    '-c',
+                    os.path.join(cur_dir, '..', 'nginx.conf'),
+                ]
+            )
+            self.logger.info('Nginx started')
+        except FileNotFoundError:
+            # todo: update
+            self.logger.info(
+                'Elastic started outside of docker, assume cluster started already.'
+            )
 
     def _add_gateway(self, gateway_cls, port, protocol='http', **kwargs):
         # ignore metrics_registry since it is not copyable
@@ -104,24 +128,34 @@ if __name__ == '__main__':
             return docs
 
     f = (
-        Flow().config_gateway(
+        Flow()
+        .config_gateway(
             # uses=f'jinahub+docker://2m00g87k/{NOW_GATEWAY_VERSION}',
             uses=NOWGateway,
-            protocol=['http', 'http', 'http'],
-            port=[8081, 8080, 8501],
+            protocol=['grpc'],
+            port=[8081],
             monitoring=True,
+            env={'JINA_LOG_LEVEL': 'DEBUG'},
         )
-        # .add(uses=DummyEncoder, name='encoder')
+        .add(uses=NOWPreprocessor, name='preprocessor', env={'JINA_LOG_LEVEL': 'DEBUG'})
+        .add(
+            host=EXTERNAL_CLIP_HOST,
+            port=443,
+            tls=True,
+            external=True,
+            name='clip',
+            env={'JINA_LOG_LEVEL': 'DEBUG'},
+        )
     )
     # f = Flow.load_config('/Users/joschkabraun/dev/jina_work/now/flow.yml')
     # f.to_k8s_yaml('tmp')
 
     with f:
         f.block()
-        # print('start')
-        # result = f.post(on='/search', inputs=Document(text='test'))
-        # result.summary()
-        # result[0].matches.summary()
-        # result[0].matches[0].summary()
-
+    #     print('start')
+    #     result = f.post(on='/search', inputs=Document(text='test'))
+    #     result.summary()
+    #     result[0].matches.summary()
+    #     result[0].matches[0].summary()
+    #
     # print('done')

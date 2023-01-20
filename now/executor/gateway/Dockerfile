@@ -1,13 +1,15 @@
 FROM jinaai/jina:3.13.2-dev34-py38-standard
+#FROM nginx:latest
 
-RUN apt-get update && apt-get install --no-install-recommends -y git && rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update && apt-get install --no-install-recommends -y git pip nginx && rm -rf /var/lib/apt/lists/*
 
 ## install requirements for the executor
 COPY requirements.txt .
 RUN pip install --compile -r requirements.txt
 
 # install latest code changes of the now repo without the requirements installed already
-RUN pip install git+https://github.com/jina-ai/now@JINA_NOW_COMMIT_SHA --no-dependencies
+RUN pip install git+https://github.com/jina-ai/now@780cd9a58dc65b02a5f359f7babbbc9aa0cd2a90
 
 # RUN pip install "jina==3.13.2.dev34"
 RUN pip install -U git+https://github.com/jina-ai/jina@master
@@ -16,4 +18,11 @@ RUN pip install -U git+https://github.com/jina-ai/jina@master
 COPY . /workdir/
 WORKDIR /workdir
 
-ENTRYPOINT ["jina", "gateway", "--uses", "config.yml"]
+## run nginx.conf
+#COPY nginx.conf nginx.conf
+COPY nginx.conf /etc/nginx/nginx.conf
+
+
+#CMD ["nginx", "-g", "daemon off &&"]
+
+ENTRYPOINT ["nginx", "-g", "daemon off &&", "jina", "gateway", "--uses", "config.yml"]
