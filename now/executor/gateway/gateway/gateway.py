@@ -10,9 +10,7 @@ from jina.serve.runtimes.gateway.http.fastapi import FastAPIBaseGateway
 from jina.serve.runtimes.gateway.http.models import JinaHealthModel
 from streamlit.web.server import Server as StreamlitServer
 
-from now.constants import EXTERNAL_CLIP_HOST
 from now.executor.gateway.gateway.bff.app.app import application
-from now.executor.preprocessor import NOWPreprocessor
 
 cur_dir = os.path.dirname(__file__)
 
@@ -66,7 +64,7 @@ class NOWGateway(CompositeGateway):
         self._add_gateway(BFFGateway, 8080, **kwargs)
         self._add_gateway(PlaygroundGateway, 8501, **kwargs)
 
-        # self.setup_nginx()
+        self.setup_nginx()
 
     def setup_nginx(self):
         import subprocess
@@ -137,15 +135,16 @@ if __name__ == '__main__':
             monitoring=True,
             env={'JINA_LOG_LEVEL': 'DEBUG'},
         )
-        .add(uses=NOWPreprocessor, name='preprocessor', env={'JINA_LOG_LEVEL': 'DEBUG'})
-        .add(
-            host=EXTERNAL_CLIP_HOST,
-            port=443,
-            tls=True,
-            external=True,
-            name='clip',
-            env={'JINA_LOG_LEVEL': 'DEBUG'},
-        )
+        .add(uses=DummyEncoder)
+        # .add(uses=NOWPreprocessor, name='preprocessor', env={'JINA_LOG_LEVEL': 'DEBUG'})
+        # .add(
+        #     host=EXTERNAL_CLIP_HOST,
+        #     port=443,
+        #     tls=True,
+        #     external=True,
+        #     name='clip',
+        #     env={'JINA_LOG_LEVEL': 'DEBUG'},
+        # )
     )
     # f = Flow.load_config('/Users/joschkabraun/dev/jina_work/now/flow.yml')
     # f.to_k8s_yaml('tmp')

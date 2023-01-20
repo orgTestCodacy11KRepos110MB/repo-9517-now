@@ -19,10 +19,11 @@ COPY . /workdir/
 WORKDIR /workdir
 
 ## run nginx.conf
-#COPY nginx.conf nginx.conf
-COPY nginx.conf /etc/nginx/nginx.conf
+COPY nginx.conf nginx.conf
+#COPY nginx.conf /etc/nginx/nginx.conf
 
 
 #CMD ["nginx", "-g", "daemon off &&"]
 
-ENTRYPOINT ["nginx", "-g", "daemon off &&", "jina", "gateway", "--uses", "config.yml"]
+#ENTRYPOINT ["nginx", "-g", "daemon off &&", "jina", "gateway", "--uses", "config.yml"]
+ENTRYPOINT ["jina", "gateway", "--uses", "config.yml"]
