@@ -57,9 +57,6 @@ class NOWGateway(CompositeGateway):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        # self.gateways = self.gateways[:1]
-        # del kwargs['runtime_args']['protocol']
-        # del kwargs['runtime_args']['port']
         # note order is important
         self._add_gateway(BFFGateway, 8080, **kwargs)
         self._add_gateway(PlaygroundGateway, 8501, **kwargs)
@@ -69,20 +66,14 @@ class NOWGateway(CompositeGateway):
     def setup_nginx(self):
         import subprocess
 
-        try:
-            subprocess.Popen(
-                [
-                    'nginx',
-                    '-c',
-                    os.path.join(cur_dir, '..', 'nginx.conf'),
-                ]
-            )
-            self.logger.info('Nginx started')
-        except FileNotFoundError:
-            # todo: update
-            self.logger.info(
-                'Elastic started outside of docker, assume cluster started already.'
-            )
+        subprocess.Popen(
+            [
+                'nginx',
+                '-c',
+                os.path.join(cur_dir, '..', 'nginx.conf'),
+            ]
+        )
+        self.logger.info('Nginx started')
 
     def _add_gateway(self, gateway_cls, port, protocol='http', **kwargs):
         # ignore metrics_registry since it is not copyable
@@ -128,9 +119,9 @@ if __name__ == '__main__':
     f = (
         Flow()
         .config_gateway(
-            # uses=f'jinahub+docker://2m00g87k/{NOW_GATEWAY_VERSION}',
-            uses=NOWGateway,
-            protocol=['grpc'],
+            uses=f'jinahub+docker://q4x2gadu/latest',
+            # uses=NOWGateway,
+            protocol=['http'],
             port=[8081],
             monitoring=True,
             env={'JINA_LOG_LEVEL': 'DEBUG'},
@@ -151,10 +142,10 @@ if __name__ == '__main__':
 
     with f:
         f.block()
-    #     print('start')
-    #     result = f.post(on='/search', inputs=Document(text='test'))
-    #     result.summary()
-    #     result[0].matches.summary()
-    #     result[0].matches[0].summary()
-    #
-    # print('done')
+        # print('start')
+        # result = f.post(on='/search', inputs=Document(text='test'))
+        # result.summary()
+        # result[0].matches.summary()
+        # result[0].matches[0].summary()
+
+    print('done')
