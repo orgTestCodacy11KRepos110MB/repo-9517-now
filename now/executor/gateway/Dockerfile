@@ -9,7 +9,7 @@ COPY requirements.txt .
 RUN pip install --compile -r requirements.txt
 
 # install latest code changes of the now repo without the requirements installed already
-RUN pip install git+https://github.com/jina-ai/now@780cd9a58dc65b02a5f359f7babbbc9aa0cd2a90
+RUN pip install git+https://github.com/jina-ai/now@a964728bdfd3381d62b58a839090ad3942f4650c --no-dependencies
 
 # RUN pip install "jina==3.13.2.dev34"
 RUN pip install -U git+https://github.com/jina-ai/jina@master
@@ -20,10 +20,10 @@ WORKDIR /workdir
 
 ## run nginx.conf
 COPY nginx.conf nginx.conf
-#COPY nginx.conf /etc/nginx/nginx.conf
+COPY nginx.conf /etc/nginx/nginx.conf
 
 
 #CMD ["nginx", "-g", "daemon off &&"]
 
-#ENTRYPOINT ["nginx", "-g", "daemon off &&", "jina", "gateway", "--uses", "config.yml"]
+#ENTRYPOINT ["nginx", "-g", "daemon off", "&&", "jina", "gateway", "--uses", "config.yml"]
 ENTRYPOINT ["jina", "gateway", "--uses", "config.yml"]

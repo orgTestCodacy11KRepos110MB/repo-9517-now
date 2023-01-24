@@ -137,7 +137,7 @@ if __name__ == '__main__':
         #     env={'JINA_LOG_LEVEL': 'DEBUG'},
         # )
     )
-    # f = Flow.load_config('/Users/joschkabraun/dev/jina_work/now/flow.yml')
+    # f = Flow.load_config('/Users/joschkabraun/dev/now/flow.yml')
     # f.to_k8s_yaml('tmp')
 
     with f:
