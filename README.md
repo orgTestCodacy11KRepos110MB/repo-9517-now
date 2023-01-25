@@ -1,6 +1,6 @@
 <p align="center">
 
-<img src="https://github.com/jina-ai/now/blob/main/docs/_static/logo-light.svg?raw=true" alt="Jina NOW logo: The data structure for unstructured data" width="300px">  
+<img src="https://github.com/jina-ai/now/blob/main/docs/_static/logo-light.svg?raw=true" alt="Jina NOW logo" width="300px">  
 
 
 <br>
@@ -15,11 +15,11 @@ Tell us what you think: <a href="https://10sw1tcpld4.typeform.com/to/VTAyYRpR?ut
 
 
 <p align="center">
-<img src="https://user-images.githubusercontent.com/11627845/164569398-5ef22a41-e2e1-438a-88a5-2ac43ad9426d.gif" alt="Jina NOW logo: The data structure for unstructured data" width="600px">
+<img src="https://user-images.githubusercontent.com/11627845/164569398-5ef22a41-e2e1-438a-88a5-2ac43ad9426d.gif" alt="Jina NOW logo" width="600px">
 
 <!-- start elevator-pitch -->
 
-NOW gives the world access to neural image search with just one command.
+NOW gives the world access to multimodal neural search with just one command.
  
 - ⛅ **Cloud**: We handle deployment and maintenance.
 - 🐎 **Fast and easy**: Set up your search use case in minutes with minimal effort.
@@ -69,7 +69,7 @@ NOW can support your custom data in the form of a `DocumentArray`, as a path to 
 You can choose a demo dataset to get started quickly. The demo datasets are hosted by NOW which can be easily
 used to build a search application. There is a large variety of datasets, including images, text, and audio.
 
-If you would like to use your own custom data, you can choose `DocumentArray name`. You will be asked to provide the
+If you would like to use your own custom data, you can choose `DocumentArray name` in the CLI dialog. You will be asked to provide the
 DocumentArray ID (or name) or URL of your dataset.
 
 ```commandline
