@@ -19,48 +19,69 @@ class IndexRequestModel(BaseRequestModel):
         default=[({}, {})],
         description='List of tuples where each tuple contains a dictionary of data and a dictionary of tags. '
         'The data dictionary maps the field name to its value. ',
+        example=[({'title': ModalityModel(text='this title')}, {'color': 'red'})],
     )
 
 
 class SearchRequestModel(BaseRequestModel):
-    limit: int = Field(default=10, description='Number of matching results to return')
+    limit: int = Field(
+        default=10, description='Number of matching results to return', example=10
+    )
     filters: Optional[Dict[str, str]] = Field(
         default={},
         description='dictionary with filters for search results  {"tag_name" : "tag_value"}',
+        example={'tags__color': {'$eq': 'blue'}},
     )
     query: List[Dict] = Field(
         default={},
         description='List of dictionaries with query fields {"name": "field_name", "modality": "modality", "value": '
         '"value"}. Each dictionary represents a field in the query. Each dictionary must have a name, '
-        'modality and value. The name is the name of the field in the data. The modality is the modality '
-        'of the field. The value is the value of the field in the query. '
-        'Example: [{"name": "title", "modality": "text", "value": "hello world"},'
-        '          {"name": "image", "modality": "image", "value": "https://example.com/image.jpg"}]',
+        'modality and value.',
+        example=[
+            {"name": "title", "modality": "text", "value": "cute cats"},
+            {
+                "name": "image",
+                "modality": "image",
+                "value": "https://example.com/image.jpg",
+            },
+        ],
     )
     create_temp_link: bool = Field(
         default=False,
         description='If true, a temporary link to the file is created. '
         'This is useful if the file is stored in a cloud bucket.',
+        example=False,
     )
     semantic_scores: List[Tuple] = Field(
         default=None,
         description='List of tuples where each tuple contains a query_field, index_field, encoder_name and weight. '
         'This defines how scores should be calculated for documents.',
+        example=[('query_text', 'title', 'encoderclip', 1.0)],
     )
 
 
 class SearchResponseModel(BaseModel):
     id: str = Field(
-        default=..., nullable=False, description='Id of the matching result.'
+        default=...,
+        nullable=False,
+        description='Id of the matching result.',
+        example='123',
     )
     scores: Optional[Dict[str, '_NamedScore']] = Field(
-        description='Similarity score with respect to the query.'
+        description='Similarity score with respect to the query.',
+        example={'score': {'value': 0.5}},
     )
     tags: Optional[Dict[str, '_StructValueType']] = Field(
-        description='Additional tags associated with the file.'
+        description='Additional tags associated with the file.',
+        example={'tags__price': {'$lt': 50.0}},
     )
     fields: Dict[str, ModalityModel] = Field(
-        default={}, description='Dictionary which maps the field name to its value. '
+        default={},
+        description='Dictionary which maps the field name to its value.',
+        example={
+            'title': {'text': 'hello world'},
+            'image': {'uri': 'https://example.com/image.jpg'},
+        },
     )
 
     class Config:
@@ -69,7 +90,7 @@ class SearchResponseModel(BaseModel):
 
 
 class SuggestionRequestModel(BaseRequestModel):
-    text: Optional[str] = Field(default=None, description='Text')
+    text: Optional[str] = Field(default=None, description='Text', example='cute cats')
 
 
 IndexRequestModel.update_forward_refs()
