@@ -2,7 +2,7 @@
 
 ## Use CLI Parameters
 
-Instead of answering the questions in the CLI dialog manually, you can also provide command-line arguments when starting Jina NOW like shown here.
+Instead of answering the questions in the CLI dialog manually, you can also provide command-line arguments when starting Jina NOW as shown here.
 
 ```bash
 jina now start --dataset-type "DocumentArray name" --dataset-name "my-documentarray-id" --index-fields "title" [...]
