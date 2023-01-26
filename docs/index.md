@@ -1,6 +1,6 @@
 # Welcome to Jina NOW!
 
-One line to host them all. Bootstrap your image search case in minutes.
+One line to host them all. Bootstrap your multimodal search case in minutes.
 
 ```{include} main.md
 :start-after: <!-- start elevator-pitch -->

@@ -169,8 +169,8 @@ ogp_custom_meta_tags = [
     '<meta name="twitter:card" content="summary_large_image">',
     '<meta name="twitter:site" content="@JinaAI_">',
     '<meta name="twitter:creator" content="@JinaAI_">',
-    '<meta name="description" content="One line to host them all. Bootstrap your image search case in minutes.">',
-    '<meta property="og:description" content="One line to host them all. Bootstrap your image search case in minutes.">',
+    '<meta name="description" content="One line to host them all. Bootstrap your multimodal search case in minutes.">',
+    '<meta property="og:description" content="One line to host them all. Bootstrap your multimodal search case in minutes.">',
     '''
 
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-K8DQ8TXQJH"></script>
