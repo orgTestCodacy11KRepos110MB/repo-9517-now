@@ -2,7 +2,7 @@ import base64
 from typing import List
 
 from docarray import Document
-from fastapi import APIRouter
+from fastapi import APIRouter, Body
 
 from deployment.bff.app.v1.models.search import (
     SearchRequestModel,
@@ -13,15 +13,101 @@ from deployment.bff.app.v1.routers.helper import field_dict_to_mm_doc, jina_clie
 from now.data_loading.create_dataclass import create_dataclass
 from now.utils import modality_string_to_docarray_typing
 
+search_examples = {
+    'working_text': {
+        'summary': 'A working example: search with text',
+        'description': 'A working example which can be tried out. Search with text on the best artworks dataset.',
+        'value': {
+            'host': 'grpcs://now-example-best-artworks.dev.jina.ai',
+            'port': 443,
+            'limit': 10,
+            'query': [
+                {
+                    'name': 'query_text_0',
+                    'modality': 'text',
+                    'value': 'cute cats',
+                }
+            ],
+            'create_temp_link': False,
+        },
+    },
+    'working_text_image': {
+        'summary': 'A working example: search with text and image',
+        'description': 'A working example which can be tried out. Search with text and image on the best artworks dataset.',
+        'value': {
+            'host': 'grpcs://now-example-best-artworks.dev.jina.ai',
+            'port': 443,
+            'limit': 10,
+            'query': [
+                {
+                    'name': 'query_text_0',
+                    'modality': 'text',
+                    'value': 'cute cats',
+                },
+                {
+                    'name': 'query_image_0',
+                    'modality': 'image',
+                    'value': 'https://images.pexels.com/photos/45201/kitty-cat-kitten-pet-45201.jpeg',
+                },
+            ],
+            'create_temp_link': False,
+        },
+    },
+    'dummy': {
+        'summary': 'A dummy example',
+        'description': 'A dummy example,  do not run. For parameter reference only.',
+        'value': {
+            'host': 'localhost',
+            'port': 31080,
+            'limit': 10,
+            'filters': {'tags__color': {'$eq': 'blue'}},
+            'query': [
+                {
+                    'name': 'query_text_0',
+                    'modality': 'text',
+                    'value': 'cute cats',
+                }
+            ],
+            'create_temp_link': False,
+            'semantic_scores': [('query_text_0', 'title', 'encoderclip', 1.0)],
+        },
+    },
+}
+
+suggestion_examples = {
+    'working_text': {
+        'summary': 'A working example: get suggestions for a text query',
+        'description': 'A working example which can be tried out. Get autocomplete suggestions for a text query.',
+        'value': {
+            'host': 'grpcs://now-example-best-artworks.dev.jina.ai',
+            'port': 443,
+            'text': 'cute ca',
+        },
+    },
+    'dummy': {
+        'summary': 'A dummy example',
+        'description': 'A dummy example,  do not run. For parameter reference only.',
+        'value': {
+            'host': 'localhost',
+            'port': 31080,
+            'jwt': {'token': '<your token>'},
+            'api_key': '<your api key>',
+            'text': 'cute cats',
+        },
+    },
+}
+
 router = APIRouter()
 
 
 @router.post(
-    "/search",
+    '/search',
     response_model=List[SearchResponseModel],
     summary='Search data via query',
 )
-def search(data: SearchRequestModel):
+def search(
+    data: SearchRequestModel = Body(examples=search_examples),
+):
     fields_modalities_mapping = {}
     fields_values_mapping = {}
 
@@ -104,10 +190,10 @@ def search(data: SearchRequestModel):
 
 
 @router.post(
-    "/suggestion",
+    '/suggestion',
     summary='Get auto complete suggestion for query',
 )
-def suggestion(data: SuggestionRequestModel):
+def suggestion(data: SuggestionRequestModel = Body(examples=suggestion_examples)):
     suggest_doc = Document(text=data.text)
     docs = jina_client_post(
         endpoint='/suggestion',

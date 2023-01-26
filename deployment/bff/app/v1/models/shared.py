@@ -20,12 +20,12 @@ class BaseRequestModel(BaseModel):
         default=None,
         description="Dictionary with key 'token' which maps to Jina Cloud token value."
         " To be passed when the flow is secure",
-        example={'token': '123'},
+        example={'token': '<your jina cloud token>'},
     )
     api_key: Optional[str] = Field(
         default=None,
         description='Used to authenticate machines',
-        example='randomkey123',
+        example='<your api key>',
     )
 
     class Config:

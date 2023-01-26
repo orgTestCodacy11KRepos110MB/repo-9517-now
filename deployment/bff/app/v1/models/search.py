@@ -29,20 +29,18 @@ class SearchRequestModel(BaseRequestModel):
     )
     filters: Optional[Dict[str, str]] = Field(
         default={},
-        description='dictionary with filters for search results  {"tag_name" : "tag_value"}',
+        description='dictionary with filters for search results',
         example={'tags__color': {'$eq': 'blue'}},
     )
     query: List[Dict] = Field(
         default={},
-        description='List of dictionaries with query fields {"name": "field_name", "modality": "modality", "value": '
-        '"value"}. Each dictionary represents a field in the query. Each dictionary must have a name, '
-        'modality and value.',
+        description='List of dictionaries with query fields. Each dictionary represents a field in the query.',
         example=[
-            {"name": "title", "modality": "text", "value": "cute cats"},
+            {'name': 'title', 'modality': 'text', 'value': 'cute cats'},
             {
-                "name": "image",
-                "modality": "image",
-                "value": "https://example.com/image.jpg",
+                'name': 'image',
+                'modality': 'image',
+                'value': 'https://example.com/image.jpg',
             },
         ],
     )
