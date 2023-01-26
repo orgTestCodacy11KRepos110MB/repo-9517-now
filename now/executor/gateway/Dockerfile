@@ -1,4 +1,5 @@
-FROM jinaai/jina:3.13.2-dev34-py38-standard
+FROM jinaai/jina:master-py38
+#FROM jinaai/jina:3.13.2-dev34-py38-standard
 #FROM nginx:latest
 
 

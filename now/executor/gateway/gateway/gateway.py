@@ -55,13 +55,14 @@ class BFFGateway(FastAPIBaseGateway):
 
 class NOWGateway(CompositeGateway):
     def __init__(self, **kwargs):
+        print(f'kwargs: {kwargs}')
         super().__init__(**kwargs)
 
-        # note order is important
-        self._add_gateway(BFFGateway, 8080, **kwargs)
-        self._add_gateway(PlaygroundGateway, 8501, **kwargs)
+        # # note order is important
+        # self._add_gateway(BFFGateway, 8080, **kwargs)
+        # self._add_gateway(PlaygroundGateway, 8501, **kwargs)
 
-        self.setup_nginx()
+        # self.setup_nginx()
 
     def setup_nginx(self):
         import subprocess
@@ -89,63 +90,85 @@ class NOWGateway(CompositeGateway):
         self.gateways.insert(0, gateway)
 
 
+@dataclass
+class MMResult:
+    title: Text
+    desc: Text
+
+
+class DummyEncoder(Executor):
+    @requests
+    def foo(self, docs: DocumentArray, **kwargs):
+        print('hi its foo')
+        for index, doc in enumerate(docs):
+            doc.matches = DocumentArray(
+                [
+                    Document(
+                        MMResult(
+                            title=f'test title {index}: {i}',
+                            desc=f'test desc {index}: {i}',
+                        )
+                    )
+                    for i in range(10)
+                ]
+            )
+        return docs
+
+
 if __name__ == '__main__':
     from jina import Flow
 
     os.environ['JINA_LOG_LEVEL'] = 'DEBUG'
 
-    @dataclass
-    class MMResult:
-        title: Text
-        desc: Text
+    # class DummyEncoder(Executor):
+    #     @requests
+    #     def foo(self, docs: DocumentArray, **kwargs):
+    #         for index, doc in enumerate(docs):
+    #             doc.matches = DocumentArray(
+    #                 [
+    #                     Document(
+    #                         MMResult(
+    #                             title=f'test title {index}: {i}',
+    #                             desc=f'test desc {index}: {i}',
+    #                         )
+    #                     )
+    #                     for i in range(10)
+    #                 ]
+    #             )
+    #         return docs
 
-    class DummyEncoder(Executor):
-        @requests
-        def foo(self, docs: DocumentArray, **kwargs):
-            for index, doc in enumerate(docs):
-                doc.matches = DocumentArray(
-                    [
-                        Document(
-                            MMResult(
-                                title=f'test title {index}: {i}',
-                                desc=f'test desc {index}: {i}',
-                            )
-                        )
-                        for i in range(10)
-                    ]
-                )
-            return docs
-
-    f = (
-        Flow()
-        .config_gateway(
-            uses=f'jinahub+docker://q4x2gadu/latest',
-            # uses=NOWGateway,
-            protocol=['http'],
-            port=[8081],
-            monitoring=True,
-            env={'JINA_LOG_LEVEL': 'DEBUG'},
-        )
-        .add(uses=DummyEncoder)
-        # .add(uses=NOWPreprocessor, name='preprocessor', env={'JINA_LOG_LEVEL': 'DEBUG'})
-        # .add(
-        #     host=EXTERNAL_CLIP_HOST,
-        #     port=443,
-        #     tls=True,
-        #     external=True,
-        #     name='clip',
-        #     env={'JINA_LOG_LEVEL': 'DEBUG'},
-        # )
-    )
-    # f = Flow.load_config('/Users/joschkabraun/dev/now/flow.yml')
+    # f = (
+    #     Flow()
+    #     .config_gateway(
+    #         uses=f'jinahub+docker://q4x2gadu/0.0.7',
+    #         # uses=f'jinahub://q4x2gadu/0.0.6',
+    #         # uses=NOWGateway,
+    #         protocol=['http'],
+    #         port=8081,
+    #         monitoring=True,
+    #         env={'JINA_LOG_LEVEL': 'DEBUG'},
+    #         # uses_with={'protocol': 'http'},
+    #     )
+    #     .add(uses=DummyEncoder)
+    #     # .add(uses=NOWPreprocessor, name='preprocessor', env={'JINA_LOG_LEVEL': 'DEBUG'})
+    #     # .add(
+    #     #     host=EXTERNAL_CLIP_HOST,
+    #     #     port=443,
+    #     #     tls=True,
+    #     #     external=True,
+    #     #     name='clip',
+    #     #     env={'JINA_LOG_LEVEL': 'DEBUG'},
+    #     # )
+    # )
+    f = Flow.load_config('/Users/joschkabraun/dev/now/flow.yml')
     # f.to_k8s_yaml('tmp')
 
     with f:
-        f.block()
-        # print('start')
-        # result = f.post(on='/search', inputs=Document(text='test'))
-        # result.summary()
-        # result[0].matches.summary()
-        # result[0].matches[0].summary()
+        # f.block()
+        print('start')
+        result = f.post(on='/search', inputs=Document(text='test'))
+        result.summary()
+        result[0].matches.summary()
+        result[0].matches[0].summary()
 
     print('done')
