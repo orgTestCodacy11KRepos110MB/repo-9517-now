@@ -4,7 +4,7 @@ from docarray.typing import Image, Text, Video
 
 from now.utils import BetterEnum
 
-DOCKER_BFF_PLAYGROUND_TAG = '0.0.146-feat-expose-sem-score-15'
+DOCKER_BFF_PLAYGROUND_TAG = '0.0.146-docs-api-0'
 NOW_PREPROCESSOR_VERSION = '0.0.120-feat-expose-sem-score-13'
 NOW_ELASTIC_INDEXER_VERSION = '0.0.142-feat-expose-sem-score-13'
 NOW_AUTOCOMPLETE_VERSION = '0.0.8-refactor-bump-jina-version-to-latest-17'
