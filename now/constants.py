@@ -4,10 +4,10 @@ from docarray.typing import Image, Text, Video
 
 from now.utils import BetterEnum
 
-DOCKER_BFF_PLAYGROUND_TAG = '0.0.146-docs-api-0'
-NOW_PREPROCESSOR_VERSION = '0.0.120-feat-expose-sem-score-13'
-NOW_ELASTIC_INDEXER_VERSION = '0.0.142-feat-expose-sem-score-13'
-NOW_AUTOCOMPLETE_VERSION = '0.0.8-refactor-bump-jina-version-to-latest-17'
+DOCKER_BFF_PLAYGROUND_TAG = '0.0.150-docs-api-1'
+NOW_PREPROCESSOR_VERSION = '0.0.120-fix-filter-index-fields-20'
+NOW_ELASTIC_INDEXER_VERSION = '0.0.142-feat-model-choices-dialog-26'
+NOW_AUTOCOMPLETE_VERSION = '0.0.9-fix-filter-index-fields-20'
 
 
 class Apps(BetterEnum):
@@ -20,6 +20,11 @@ class DatasetTypes(BetterEnum):
     DOCARRAY = 'docarray'
     S3_BUCKET = 's3_bucket'
     ELASTICSEARCH = 'elasticsearch'
+
+
+class Models(BetterEnum):
+    CLIP_MODEL = 'encoderclip'
+    SBERT_MODEL = 'encodersbert'
 
 
 SUPPORTED_FILE_TYPES = {
@@ -52,3 +57,12 @@ TAG_INDEXER_DOC_HAS_TEXT = '_indexer_doc_has_text'
 EXECUTOR_PREFIX = 'jinahub+docker://'
 ACCESS_PATHS = '@cc'
 FLOW_STATUS = 'Serving'
+
+MODALITY_TO_MODELS = {
+    Text: [
+        {'name': 'Clip', 'value': Models.CLIP_MODEL},
+        {'name': 'Sbert', 'value': Models.SBERT_MODEL},
+    ],
+    Image: [{'name': 'Clip', 'value': Models.CLIP_MODEL}],
+    Video: [{'name': 'Clip', 'value': Models.CLIP_MODEL}],
+}
