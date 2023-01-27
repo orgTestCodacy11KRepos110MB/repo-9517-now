@@ -10,7 +10,7 @@ COPY requirements.txt .
 RUN pip install --compile -r requirements.txt
 
 # install latest code changes of the now repo without the requirements installed already
-RUN pip install git+https://github.com/jina-ai/now@a964728bdfd3381d62b58a839090ad3942f4650c --no-dependencies
+RUN pip install git+https://github.com/jina-ai/now@4b73c6416fea8307e4d94d5148f0b587991d8c7d --no-dependencies
 
 # RUN pip install "jina==3.13.2.dev34"
 RUN pip install -U git+https://github.com/jina-ai/jina@master

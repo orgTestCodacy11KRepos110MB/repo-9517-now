@@ -1,15 +1,16 @@
 import os
+from time import sleep
 
 import jina
 import streamlit.web.bootstrap
-from docarray import Document, DocumentArray, dataclass
-from docarray.typing import Text
-from jina import Executor, Gateway, requests
+from docarray import Document
+from jina import Gateway
 from jina.serve.runtimes.gateway import CompositeGateway
 from jina.serve.runtimes.gateway.http.fastapi import FastAPIBaseGateway
 from jina.serve.runtimes.gateway.http.models import JinaHealthModel
 from streamlit.web.server import Server as StreamlitServer
 
+from now.deployment.deployment import cmd
 from now.executor.gateway.bff.app.app import application
 
 cur_dir = os.path.dirname(__file__)
@@ -56,24 +57,56 @@ class BFFGateway(FastAPIBaseGateway):
 class NOWGateway(CompositeGateway):
     def __init__(self, **kwargs):
         print(f'kwargs: {kwargs}')
+        # kwargs['runtime_args']['protocol'] = kwargs['runtime_args']['protocol'][1:]
+        kwargs['runtime_args']['port'] = [8082]
+        print(f'kwargs: {kwargs}')
         super().__init__(**kwargs)
 
-        # # note order is important
-        # self._add_gateway(BFFGateway, 8080, **kwargs)
-        # self._add_gateway(PlaygroundGateway, 8501, **kwargs)
+        print(f'len gateways: {len(self.gateways)}')
 
-        # self.setup_nginx()
+        # note order is important
+        self._add_gateway(BFFGateway, 8080, **kwargs)
+        self._add_gateway(PlaygroundGateway, 8501, **kwargs)
+
+        self.setup_nginx()
+
+        print(f'finished init')
+
+    async def setup_server(self):
+        print('setup_server called')
+        await super().setup_server()
+        print('setup_server finished')
+
+    async def run_server(self):
+        print('run_server called')
+        await super().run_server()
+        print('run_server finished')
+
+    async def shutdown(self):
+        print('shutdown called')
+        await super().shutdown()
+        print('shutdown finished')
 
     def setup_nginx(self):
-        import subprocess
 
-        subprocess.Popen(
+        output, error = cmd(
             [
                 'nginx',
                 '-c',
                 os.path.join(cur_dir, '', 'nginx.conf'),
             ]
         )
+        print(f'nginx output: {output}')
+        print(f'nginx error: {error}')
+
+        # subprocess.Popen(
+        #     [
+        #         'nginx',
+        #         '-c',
+        #         os.path.join(cur_dir, '', 'nginx.conf'),
+        #     ]
+        # )
+        sleep(10)
         self.logger.info('Nginx started')
 
     def _add_gateway(self, gateway_cls, port, protocol='http', **kwargs):
@@ -88,31 +121,6 @@ class NOWGateway(CompositeGateway):
         gateway = gateway_cls(**gateway_kwargs)
         gateway.streamer = self.streamer
         self.gateways.insert(0, gateway)
-
-
-@dataclass
-class MMResult:
-    title: Text
-    desc: Text
-
-
-class DummyEncoder(Executor):
-    @requests
-    def foo(self, docs: DocumentArray, **kwargs):
-        print('hi its foo')
-        for index, doc in enumerate(docs):
-            doc.matches = DocumentArray(
-                [
-                    Document(
-                        MMResult(
-                            title=f'test title {index}: {i}',
-                            desc=f'test desc {index}: {i}',
-                        )
-                    )
-                    for i in range(10)
-                ]
-            )
-        return docs
 
 
 if __name__ == '__main__':
@@ -139,10 +147,10 @@ if __name__ == '__main__':
 
     f = (
         Flow().config_gateway(
-            uses=f'jinahub+docker://q4x2gadu/0.0.13',
+            uses=f'jinahub+docker://q4x2gadu/0.0.32',
             # uses=NOWGateway,
             protocol=['http'],
-            port=8081,
+            port=[8081],
             # monitoring=True,
             env={'JINA_LOG_LEVEL': 'DEBUG'},
         )
@@ -151,7 +159,8 @@ if __name__ == '__main__':
         #     env={'JINA_LOG_LEVEL': 'DEBUG'},
         # )
         .add(
-            uses='jinahub+docker://w5w084h7/0.0.8-refactor-custom-gateway-40',
+            name='autocomplete',
+            uses='jinahub+docker://w5w084h7/0.0.9-fix-filter-index-fields-20',
             env={'JINA_LOG_LEVEL': 'DEBUG'},
         )
         # .add(uses=NOWPreprocessor, name='preprocessor', env={'JINA_LOG_LEVEL': 'DEBUG'})
@@ -167,7 +176,8 @@ if __name__ == '__main__':
     # f = Flow.load_config('/Users/joschkabraun/dev/now/flow.yml')
 
     with f:
-        # f.block()
+        f.block()
+        sleep(10)
         print('start')
         result = f.post(on='/search', inputs=Document(text='test'))
         result.summary()
