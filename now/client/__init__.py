@@ -2,8 +2,8 @@ import requests
 from docarray import dataclass
 from docarray.typing import Text
 
-from now.executor.gateway.gateway.bff.app.v1.models.search import SearchRequestModel
-from now.executor.gateway.gateway.bff.app.v1.routers.helper import (
+from now.executor.gateway.bff.app.v1.models.search import SearchRequestModel
+from now.executor.gateway.bff.app.v1.routers.helper import (
     field_dict_to_mm_doc,
     jina_client_post,
 )

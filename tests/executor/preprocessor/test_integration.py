@@ -5,7 +5,7 @@ from docarray import Document, DocumentArray
 from jina import Flow
 
 from now.constants import TAG_OCR_DETECTOR_TEXT_IN_DOC
-from now.executor.gateway.gateway import NOWGateway
+from now.executor.gateway import NOWGateway
 from now.executor.preprocessor import NOWPreprocessor
 
 

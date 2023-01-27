@@ -5,7 +5,7 @@ from docarray import Document
 from jina import Executor, Flow, requests
 
 from now.executor.abstract.auth.auth import get_auth_executor_class
-from now.executor.gateway.gateway import NOWGateway
+from now.executor.gateway import NOWGateway
 
 
 @pytest.fixture

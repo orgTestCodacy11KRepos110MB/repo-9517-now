@@ -7,7 +7,7 @@ from docarray.typing import Text
 from jina import Document, DocumentArray, Executor, Flow, requests
 
 from now.constants import TAG_OCR_DETECTOR_TEXT_IN_DOC
-from now.executor.gateway.gateway import NOWGateway
+from now.executor.gateway import NOWGateway
 from now.executor.indexer.elastic import NOWElasticIndexer
 from now.executor.preprocessor import NOWPreprocessor
 

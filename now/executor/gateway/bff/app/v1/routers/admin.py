@@ -1,12 +1,12 @@
 from docarray import Document
 from fastapi import APIRouter, HTTPException
 
-from now.executor.gateway.gateway.bff.app.v1.models.admin import (
+from now.executor.gateway.bff.app.v1.models.admin import (
     UpdateApiKeysRequestModel,
     UpdateEmailsRequestModel,
 )
-from now.executor.gateway.gateway.bff.app.v1.models.shared import BaseRequestModel
-from now.executor.gateway.gateway.bff.app.v1.routers.helper import jina_client_post
+from now.executor.gateway.bff.app.v1.models.shared import BaseRequestModel
+from now.executor.gateway.bff.app.v1.routers.helper import jina_client_post
 
 router = APIRouter()
 

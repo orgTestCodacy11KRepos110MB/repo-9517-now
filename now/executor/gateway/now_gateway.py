@@ -10,7 +10,7 @@ from jina.serve.runtimes.gateway.http.fastapi import FastAPIBaseGateway
 from jina.serve.runtimes.gateway.http.models import JinaHealthModel
 from streamlit.web.server import Server as StreamlitServer
 
-from now.executor.gateway.gateway.bff.app.app import application
+from now.executor.gateway.bff.app.app import application
 
 cur_dir = os.path.dirname(__file__)
 
@@ -71,7 +71,7 @@ class NOWGateway(CompositeGateway):
             [
                 'nginx',
                 '-c',
-                os.path.join(cur_dir, '..', 'nginx.conf'),
+                os.path.join(cur_dir, '', 'nginx.conf'),
             ]
         )
         self.logger.info('Nginx started')
@@ -137,31 +137,34 @@ if __name__ == '__main__':
     #             )
     #         return docs
 
-    # f = (
-    #     Flow()
-    #     .config_gateway(
-    #         uses=f'jinahub+docker://q4x2gadu/0.0.7',
-    #         # uses=f'jinahub://q4x2gadu/0.0.6',
-    #         # uses=NOWGateway,
-    #         protocol=['http'],
-    #         port=8081,
-    #         monitoring=True,
-    #         env={'JINA_LOG_LEVEL': 'DEBUG'},
-    #         # uses_with={'protocol': 'http'},
-    #     )
-    #     .add(uses=DummyEncoder)
-    #     # .add(uses=NOWPreprocessor, name='preprocessor', env={'JINA_LOG_LEVEL': 'DEBUG'})
-    #     # .add(
-    #     #     host=EXTERNAL_CLIP_HOST,
-    #     #     port=443,
-    #     #     tls=True,
-    #     #     external=True,
-    #     #     name='clip',
-    #     #     env={'JINA_LOG_LEVEL': 'DEBUG'},
-    #     # )
-    # )
-    f = Flow.load_config('/Users/joschkabraun/dev/now/flow.yml')
-    # f.to_k8s_yaml('tmp')
+    f = (
+        Flow().config_gateway(
+            uses=f'jinahub+docker://q4x2gadu/0.0.13',
+            # uses=NOWGateway,
+            protocol=['http'],
+            port=8081,
+            # monitoring=True,
+            env={'JINA_LOG_LEVEL': 'DEBUG'},
+        )
+        # .add(
+        #     uses=DummyEncoder,
+        #     env={'JINA_LOG_LEVEL': 'DEBUG'},
+        # )
+        .add(
+            uses='jinahub+docker://w5w084h7/0.0.8-refactor-custom-gateway-40',
+            env={'JINA_LOG_LEVEL': 'DEBUG'},
+        )
+        # .add(uses=NOWPreprocessor, name='preprocessor', env={'JINA_LOG_LEVEL': 'DEBUG'})
+        # .add(
+        #     host=EXTERNAL_CLIP_HOST,
+        #     port=443,
+        #     tls=True,
+        #     external=True,
+        #     name='clip',
+        #     env={'JINA_LOG_LEVEL': 'DEBUG'},
+        # )
+    )
+    # f = Flow.load_config('/Users/joschkabraun/dev/now/flow.yml')
 
     with f:
         # f.block()

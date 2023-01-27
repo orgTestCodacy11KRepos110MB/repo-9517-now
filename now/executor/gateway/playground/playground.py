@@ -26,14 +26,14 @@ from tornado.httputil import parse_cookie
 # from streamlit_webrtc import WebRtcMode, webrtc_streamer
 # from streamlit.scriptrunner import add_script_run_ctx
 # from streamlit.server.server import Server
-from now.executor.gateway.gateway.playground.src.constants import (
+from now.executor.gateway.playground.src.constants import (
     BUTTONS,
     S3_DEMO_PATH,
     SSO_COOKIE,
     SURVEY_LINK,
     ds_set,
 )
-from now.executor.gateway.gateway.playground.src.search import (
+from now.executor.gateway.playground.src.search import (
     get_query_params,
     search_by_image,
     search_by_text,

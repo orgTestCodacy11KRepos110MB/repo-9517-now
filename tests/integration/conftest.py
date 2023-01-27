@@ -10,8 +10,8 @@ import pytest
 from pytest_mock import MockerFixture
 
 from now.deployment.deployment import terminate_wolf
-from now.executor.gateway.gateway.bff.app.app import run_server
-from now.executor.gateway.gateway.playground.playground import deploy_streamlit
+from now.executor.gateway.bff.app.app import run_server
+from now.executor.gateway.playground.playground import deploy_streamlit
 from now.utils import get_flow_id
 
 logging.basicConfig(level=logging.DEBUG)

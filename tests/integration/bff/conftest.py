@@ -3,7 +3,7 @@ from docarray.typing import Text
 from jina import Flow
 
 from now.constants import ACCESS_PATHS, EXTERNAL_CLIP_HOST
-from now.executor.gateway.gateway import NOWGateway
+from now.executor.gateway import NOWGateway
 from now.executor.indexer.elastic import NOWElasticIndexer
 from now.executor.preprocessor import NOWPreprocessor
 

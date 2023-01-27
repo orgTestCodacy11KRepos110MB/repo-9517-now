@@ -1,5 +1,5 @@
 jtype: NOWGateway
 py_modules:
-  - gateway/__init__.py
+  - now_gateway.py
 metas:
   name: NOWGateway

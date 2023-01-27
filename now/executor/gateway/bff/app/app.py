@@ -10,10 +10,10 @@ from starlette.applications import Starlette
 from starlette.responses import JSONResponse
 from starlette.routing import Mount
 
-import now.executor.gateway.gateway.bff.app.settings as api_settings
+import now.executor.gateway.bff.app.settings as api_settings
 from now import __version__
-from now.executor.gateway.gateway.bff.app.decorators import api_method, timed
-from now.executor.gateway.gateway.bff.app.v1.routers import admin, search
+from now.executor.gateway.bff.app.decorators import api_method, timed
+from now.executor.gateway.bff.app.v1.routers import admin, search
 
 logging.config.dictConfig(api_settings.DEFAULT_LOGGING_CONFIG)
 logger = logging.getLogger('bff.app')

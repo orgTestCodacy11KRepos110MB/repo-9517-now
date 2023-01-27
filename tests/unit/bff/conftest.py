@@ -6,7 +6,7 @@ from docarray import DocumentArray
 from fastapi.testclient import TestClient
 from pytest_mock import MockerFixture
 
-from now.executor.gateway.gateway.bff.app.app import build_app
+from now.executor.gateway.bff.app.app import build_app
 
 data_url = 'https://storage.googleapis.com/jina-fashion-data/data/one-line/datasets/jpeg/best-artworks.img10.bin'
 
@@ -43,7 +43,7 @@ def client_with_mocked_jina_client(
             return MockedJinaClient(response)
 
         mocker.patch(
-            'now.executor.gateway.gateway.bff.app.v1.routers.helper.GatewayStreamer.get_streamer',
+            'now.executor.gateway.bff.app.v1.routers.helper.GatewayStreamer.get_streamer',
             _get_jina_streamer,
         )
 
