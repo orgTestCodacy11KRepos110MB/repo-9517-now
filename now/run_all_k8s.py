@@ -64,9 +64,7 @@ def start_now(**kwargs):
             gateway_host_internal,
         ) = run_backend.run(app_instance, user_input, **kwargs)
     bff_url = f'{gateway_host_internal}/api/v1/search-app/docs'
-    playground_url = f'{gateway_host_internal}/playground' + (
-        f'&secured={user_input.secured}' if user_input.secured else ''
-    )
+    playground_url = f'{gateway_host_internal}/playground'
 
     print()
     my_table = Table(

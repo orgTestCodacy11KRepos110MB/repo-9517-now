@@ -1,7 +1,6 @@
 import os
 from time import sleep
 
-import jina
 import streamlit.web.bootstrap
 from docarray import Document
 from jina import Gateway
@@ -18,9 +17,11 @@ cur_dir = os.path.dirname(__file__)
 
 
 class PlaygroundGateway(Gateway):
-    def __init__(self, **kwargs):
-        print(f"jina version: {jina.__version__}")
+    def __init__(self, secured: bool, **kwargs):
         super().__init__(**kwargs)
+        # need to get it through kwargs
+        # self.secured = kwargs.get('secured', False)
+        self.secured = secured
         self.streamlit_script = 'playground/playground.py'
 
     async def setup_server(self):
@@ -30,12 +31,14 @@ class PlaygroundGateway(Gateway):
         streamlit.web.bootstrap._fix_sys_argv(self.streamlit_script, ())
         streamlit.web.bootstrap._fix_pydeck_mapbox_api_warning()
         # streamlit.web.bootstrap._install_pages_watcher(self.streamlit_script)
+        streamlit_cmd = (
+            f'"python -m streamlit" run --browser.serverPort 12983 {self.streamlit_script} --server.address=0.0.0.0 '
+            f'--server.baseUrlPath /playground '
+        )
+        if self.secured:
+            streamlit_cmd += '-- --secured'
         self.streamlit_server = StreamlitServer(
-            os.path.join(cur_dir, self.streamlit_script),
-            f'"python -m streamlit" run '
-            f'--browser.serverPort 12983 {self.streamlit_script} '
-            f'--server.address=0.0.0.0 '
-            f'--server.baseUrlPath /playground ',
+            os.path.join(cur_dir, self.streamlit_script), streamlit_cmd
         )
 
     async def run_server(self):
@@ -59,14 +62,15 @@ class BFFGateway(FastAPIBaseGateway):
 
 
 class NOWGateway(CompositeGateway):
-    def __init__(self, **kwargs):
+    def __init__(self, secured: bool, **kwargs):
         # need to update port ot 8082, as nginx will listen on 8081
         kwargs['runtime_args']['port'] = [8082]
         super().__init__(**kwargs)
 
         # note order is important
         self._add_gateway(BFFGateway, CG_BFF_PORT, **kwargs)
-        self._add_gateway(PlaygroundGateway, 8501, **kwargs)
+        self._add_gateway(PlaygroundGateway, 8501, **{'secured': secured, **kwargs})
+        # self._add_gateway(PlaygroundGateway, 8501, secured,  **kwargs)
 
         self.setup_nginx()
 
@@ -141,8 +145,8 @@ if __name__ == '__main__':
             uses=NOWGateway,
             protocol=['http'],
             port=[8081],
-            # monitoring=True,
             env={'JINA_LOG_LEVEL': 'DEBUG'},
+            uses_with={'secured': False},
         )
         # .add(
         #     uses=DummyEncoder,
@@ -170,7 +174,7 @@ if __name__ == '__main__':
     # f = Flow.load_config('/Users/joschkabraun/dev/now/flow.yml')
 
     with f:
-        f.block()
+        # f.block()
         sleep(10)
         print('start')
         result = f.post(on='/search', inputs=Document(text='test'))

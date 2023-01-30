@@ -10,6 +10,8 @@ def test_autocomplete(tmpdir, mm_dataclass):
         uses=NOWGateway,
         protocol=['http'],
         port=[8081],
+        uses_with={'secured': False},
+        env={'JINA_LOG_LEVEL': 'DEBUG'},
     ).add(uses=NOWAutoCompleteExecutor2, workspace=tmpdir) as f:
         f.post(
             on='/search',

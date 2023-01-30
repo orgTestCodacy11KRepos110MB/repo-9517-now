@@ -26,12 +26,16 @@ def get_flow(preprocessor_args=None, indexer_args=None, tmpdir=None):
     preprocessor_args = preprocessor_args or {}
     indexer_args = indexer_args or {}
     metas = {'workspace': str(tmpdir)}
+    # set secured to True if preprocessor_args or indexer_args contain 'admin_emails'
+    secured = 'admin_emails' in preprocessor_args or 'admin_emails' in indexer_args
     f = (
         Flow()
         .config_gateway(
             uses=NOWGateway,
             protocol=['http'],
             port=[8081],
+            uses_with={'secured': secured},
+            env={'JINA_LOG_LEVEL': 'DEBUG'},
         )
         .add(
             uses=NOWPreprocessor,

@@ -1,3 +1,4 @@
+import argparse
 import base64
 import io
 import os
@@ -77,7 +78,7 @@ def nav_to(url):
     st.write(nav_script, unsafe_allow_html=True)
 
 
-def deploy_streamlit():
+def deploy_streamlit(secured: bool):
     """
     We want to provide the end-to-end experience to the user.
     Please deploy a streamlit playground on k8s/local to access the api.
@@ -89,6 +90,7 @@ def deploy_streamlit():
 
     # Retrieve query params
     params = get_query_params()
+    setattr(params, 'secured', secured)
     redirect_to = render_auth_components(params)
 
     _, mid, _ = st.columns([0.8, 1, 1])
@@ -178,7 +180,7 @@ def deploy_streamlit():
 
 
 def get_info_from_endpoint(client, params, endpoint, info) -> dict:
-    if params.secured.lower() == 'true':
+    if params.secured:
         response = client.post(
             on=endpoint,
             parameters={'jwt': {'token': st.session_state.jwt_val['token']}},
@@ -189,7 +191,7 @@ def get_info_from_endpoint(client, params, endpoint, info) -> dict:
 
 
 def render_auth_components(params):
-    if params.secured.lower() == 'true':
+    if params.secured:
         st_cookie = get_cookie_value(cookie_name=SSO_COOKIE)
         resp_jwt = requests.get(
             url=f'https://api.hubble.jina.ai/v2/rpc/user.identity.whoami',
@@ -235,11 +237,9 @@ def _do_login(params):
         query_params_var['top_k'] = params.top_k
     st.experimental_set_query_params(**query_params_var)
 
-    redirect_uri = f'https://nowrun.jina.ai/?host={params.host}' f'&data={params.data}'
-    if params.secured:
-        redirect_uri += f'&secured={params.secured}'
+    redirect_uri = f'{params.host}/playground'
     if 'top_k' in st.experimental_get_query_params():
-        redirect_uri += f'&top_k={params.top_k}'
+        redirect_uri += f'?top_k={params.top_k}'
 
     redirect_uri = quote(redirect_uri)
     redirect_uri = (
@@ -743,4 +743,15 @@ def setup_session_state():
 
 
 if __name__ == '__main__':
-    deploy_streamlit()
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('--secured', action='store_true', help='Makes the flow secured')
+    try:
+        args = parser.parse_args()
+    except SystemExit as e:
+        # This exception will be raised if --help or invalid command line arguments
+        # are used. Currently streamlit prevents the program from exiting normally
+        # so we have to do a hard exit.
+        os._exit(e.code)
+
+    deploy_streamlit(secured=args.secured)

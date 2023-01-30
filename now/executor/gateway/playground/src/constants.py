@@ -5,7 +5,7 @@ class Parameters:
     data: str = None
     code: str = None
     state: str = None
-    secured: str = 'false'
+    secured: bool = False
     top_k: int = 9
 
 
