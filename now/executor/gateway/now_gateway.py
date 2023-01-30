@@ -31,7 +31,10 @@ class PlaygroundGateway(Gateway):
         # streamlit.web.bootstrap._install_pages_watcher(self.streamlit_script)
         self.streamlit_server = StreamlitServer(
             os.path.join(cur_dir, self.streamlit_script),
-            f'"python -m streamlit" run --browser.serverPort 12983 {self.streamlit_script} --server.address=0.0.0.0',
+            f'"python -m streamlit" run '
+            f'--browser.serverPort 12983 {self.streamlit_script} '
+            f'--server.address=0.0.0.0 '
+            f'--server.baseUrlPath /playground ',
         )
 
     async def run_server(self):
@@ -56,13 +59,8 @@ class BFFGateway(FastAPIBaseGateway):
 
 class NOWGateway(CompositeGateway):
     def __init__(self, **kwargs):
-        print(f'kwargs: {kwargs}')
-        # kwargs['runtime_args']['protocol'] = kwargs['runtime_args']['protocol'][1:]
         kwargs['runtime_args']['port'] = [8082]
-        print(f'kwargs: {kwargs}')
         super().__init__(**kwargs)
-
-        print(f'len gateways: {len(self.gateways)}')
 
         # note order is important
         self._add_gateway(BFFGateway, 8080, **kwargs)
@@ -70,22 +68,14 @@ class NOWGateway(CompositeGateway):
 
         self.setup_nginx()
 
-        print(f'finished init')
-
     async def setup_server(self):
-        print('setup_server called')
         await super().setup_server()
-        print('setup_server finished')
 
     async def run_server(self):
-        print('run_server called')
         await super().run_server()
-        print('run_server finished')
 
     async def shutdown(self):
-        print('shutdown called')
         await super().shutdown()
-        print('shutdown finished')
 
     def setup_nginx(self):
 
@@ -147,8 +137,8 @@ if __name__ == '__main__':
 
     f = (
         Flow().config_gateway(
-            uses=f'jinahub+docker://q4x2gadu/0.0.32',
-            # uses=NOWGateway,
+            # uses=f'jinahub+docker://q4x2gadu/0.0.32',
+            uses=NOWGateway,
             protocol=['http'],
             port=[8081],
             # monitoring=True,
