@@ -15,10 +15,15 @@ from tests.unit.data_loading.elastic.example_dataset import ExampleDataset
 from tests.unit.data_loading.elastic.utils import delete_es_index
 from urllib3.exceptions import InsecureRequestWarning, SecurityWarning
 
+from now.constants import DatasetTypes
+from now.data_loading.create_dataclass import create_dataclass
+from now.data_loading.data_loading import load_data
 from now.data_loading.elasticsearch import ElasticsearchConnector
+from now.demo_data import DemoDatasetNames
 from now.deployment.deployment import cmd
 from now.executor.indexer.elastic.elastic_indexer import wait_until_cluster_is_up
 from now.executor.preprocessor import NOWPreprocessor
+from now.now_dataclasses import UserInput
 
 
 @pytest.fixture()
@@ -320,3 +325,47 @@ def setup_online_shop_db(setup_elastic_db, es_connection_params, online_shop_res
 
     # delete index
     delete_es_index(connector=es_connector, name=index_name)
+
+
+@pytest.fixture
+def artworks_data():
+    user_input = UserInput()
+    user_input.admin_name = 'team-now'
+    user_input.dataset_type = DatasetTypes.DEMO
+    user_input.dataset_name = DemoDatasetNames.BEST_ARTWORKS
+    user_input.index_fields = ['image']
+    user_input.filter_fields = ['label']
+    user_input.index_field_candidates_to_modalities = {'image': Image}
+    docs = load_data(user_input)
+    return docs, user_input
+
+
+@pytest.fixture
+def pop_lyrics_data():
+    user_input = UserInput()
+    user_input.admin_name = 'team-now'
+    user_input.dataset_type = DatasetTypes.DEMO
+    user_input.dataset_name = DemoDatasetNames.POP_LYRICS
+    user_input.index_fields = ['lyrics']
+    user_input.index_field_candidates_to_modalities = {'lyrics': Text}
+    docs = load_data(user_input)
+    return docs, user_input
+
+
+@pytest.fixture
+def elastic_data(setup_online_shop_db, es_connection_params):
+    _, index_name = setup_online_shop_db
+    connection_str, _ = es_connection_params
+    user_input = UserInput()
+    user_input.dataset_type = DatasetTypes.ELASTICSEARCH
+    user_input.es_index_name = index_name
+    user_input.index_fields = ['title']
+    user_input.filter_fields = ['product_id']
+    user_input.index_field_candidates_to_modalities = {'title': Text}
+    user_input.filter_field_candidates_to_modalities = {'product_id': str}
+    data_class, user_input.field_names_to_dataclass_fields = create_dataclass(
+        user_input=user_input
+    )
+    user_input.es_host_name = connection_str
+    docs = load_data(user_input=user_input, data_class=data_class)
+    return docs, user_input

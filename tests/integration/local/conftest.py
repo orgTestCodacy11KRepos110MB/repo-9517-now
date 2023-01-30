@@ -29,7 +29,7 @@ def get_flow(preprocessor_args=None, indexer_args=None, tmpdir=None):
     indexer_args = indexer_args or {}
     metas = {'workspace': str(tmpdir)}
     f = (
-        Flow(port_expose=PORT)
+        Flow()
         .config_gateway(
             uses=NOWGateway,
             protocol=['http'],
