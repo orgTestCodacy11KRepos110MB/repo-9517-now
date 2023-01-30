@@ -1,8 +1,7 @@
-from docarray import Document, DocumentArray, dataclass
-from docarray.typing import Text
 from jina import Flow
 
-from now.constants import ACCESS_PATHS, EXTERNAL_CLIP_HOST
+from now.admin.utils import get_default_request_body
+from now.constants import EXTERNAL_CLIP_HOST
 from now.executor.gateway import NOWGateway
 from now.executor.indexer.elastic import NOWElasticIndexer
 from now.executor.preprocessor import NOWPreprocessor
@@ -13,23 +12,10 @@ HOST = 'grpc://0.0.0.0'
 PORT = 9089
 
 
-def index_data(f, **kwargs):
-    @dataclass
-    class Doc:
-        title: Text
-
-    docs = DocumentArray([Document(Doc(title='test')) for _ in range(10)])
-    for index, doc in enumerate(docs):
-        doc.tags['color'] = 'Blue Color' if index == 0 else 'Red Color'
-        doc.tags['price'] = 0.5 + index
-
-    f.index(
-        docs,
-        parameters={
-            'access_paths': ACCESS_PATHS,
-            **kwargs,
-        },
-    )
+def get_request_body(secured):
+    request_body = get_default_request_body(host=HOST, secured=secured)
+    request_body['port'] = PORT
+    return request_body
 
 
 def get_flow(preprocessor_args=None, indexer_args=None, tmpdir=None):
@@ -43,7 +29,7 @@ def get_flow(preprocessor_args=None, indexer_args=None, tmpdir=None):
     indexer_args = indexer_args or {}
     metas = {'workspace': str(tmpdir)}
     f = (
-        Flow(port_expose=9089)
+        Flow(port_expose=PORT)
         .config_gateway(
             uses=NOWGateway,
             protocol=['grpc'],
@@ -63,7 +49,6 @@ def get_flow(preprocessor_args=None, indexer_args=None, tmpdir=None):
             uses=NOWElasticIndexer,
             uses_with={
                 'hosts': 'http://localhost:9200',
-                'document_mappings': [['encoderclip', 512, ['title']]],
                 **indexer_args,
             },
             uses_metas=metas,

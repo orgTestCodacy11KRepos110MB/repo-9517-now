@@ -1,6 +1,22 @@
+import pytest
 from docarray import Document, DocumentArray
 
 from now.executor.autocomplete.executor import NOWAutoCompleteExecutor2
+
+
+@pytest.fixture
+def mmdocs_with_text(mm_dataclass):
+
+    return DocumentArray(
+        [
+            Document(mm_dataclass(text='background')),
+            Document(mm_dataclass(text='background')),
+            Document(mm_dataclass(text='bang')),
+            Document(mm_dataclass(text='loading')),
+            Document(mm_dataclass(text='loading')),
+            Document(mm_dataclass(text='laugh')),
+        ]
+    )
 
 
 def word_list():
@@ -50,39 +66,28 @@ def test_initialize():
     assert executor.words['loading']['count'] == '39131'
 
 
-def test_search_update(tmpdir):
+def test_search_update(tmpdir, mmdocs_with_text):
     executor = NOWAutoCompleteExecutor2(workspace=tmpdir)
 
-    da = DocumentArray(
-        [
-            Document(chunks=[Document(text='background')]),
-            Document(chunks=[Document(text='background')]),
-            Document(chunks=[Document(text='bang')]),
-            Document(chunks=[Document(text='loading')]),
-            Document(chunks=[Document(text='loading')]),
-            Document(chunks=[Document(text='laugh')]),
-        ]
-    )
-
-    executor.search_update(da)
+    executor.search_update(mmdocs_with_text)
     assert executor.words['background']['count'] == 2
     assert executor.words['loading']['count'] == 2
     assert executor.words['bang']['count'] == 1
 
 
-def test_search_update_profanity(tmpdir):
+def test_search_update_profanity(tmpdir, mm_dataclass):
     executor = NOWAutoCompleteExecutor2(workspace=tmpdir)
 
     da = DocumentArray(
         [
-            Document(chunks=[Document(text='background')]),
-            Document(chunks=[Document(text='background')]),
-            Document(chunks=[Document(text='shit')]),
-            Document(chunks=[Document(text='loading')]),
-            Document(chunks=[Document(text='fuck')]),
-            Document(chunks=[Document(text='f*ck')]),
-            Document(chunks=[Document(text='laugh')]),
-            Document(chunks=[Document(text='fuck shit somethings')]),
+            Document(mm_dataclass(text='background')),
+            Document(mm_dataclass(text='background')),
+            Document(mm_dataclass(text='shit')),
+            Document(mm_dataclass(text='loading')),
+            Document(mm_dataclass(text='fuck')),
+            Document(mm_dataclass(text='f*ck')),
+            Document(mm_dataclass(text='laugh')),
+            Document(mm_dataclass(text='fuck shit somethings')),
         ]
     )
 
@@ -93,21 +98,10 @@ def test_search_update_profanity(tmpdir):
     assert 'shit' not in executor.words
 
 
-def test_get_suggestion(tmpdir):
+def test_get_suggestion(tmpdir, mmdocs_with_text):
     executor = NOWAutoCompleteExecutor2(workspace=tmpdir)
 
-    da = DocumentArray(
-        [
-            Document(chunks=[Document(text='background')]),
-            Document(chunks=[Document(text='background')]),
-            Document(chunks=[Document(text='bang')]),
-            Document(chunks=[Document(text='loading')]),
-            Document(chunks=[Document(text='loading')]),
-            Document(chunks=[Document(text='laugh')]),
-        ]
-    )
-
-    executor.search_update(da)
+    executor.search_update(mmdocs_with_text)
 
     da_sugg_1 = DocumentArray([Document(text='b')])
     executor.get_suggestion(da_sugg_1)
@@ -120,17 +114,17 @@ def test_get_suggestion(tmpdir):
     assert da_sugg_3[0].tags['suggestions'] == ['background']
 
 
-def test_get_suggestion_bitrigrams(tmpdir):
+def test_get_suggestion_bitrigrams(tmpdir, mm_dataclass):
     executor = NOWAutoCompleteExecutor2(workspace=tmpdir)
 
     da = DocumentArray(
         [
-            Document(chunks=[Document(text='aziz')]),
-            Document(chunks=[Document(text='test')]),
-            Document(chunks=[Document(text='aziz test')]),
-            Document(chunks=[Document(text='red')]),
-            Document(chunks=[Document(text='red dress')]),
-            Document(chunks=[Document(text='red long dress')]),
+            Document(mm_dataclass(text='aziz')),
+            Document(mm_dataclass(text='test')),
+            Document(mm_dataclass(text='aziz test')),
+            Document(mm_dataclass(text='red')),
+            Document(mm_dataclass(text='red dress')),
+            Document(mm_dataclass(text='red long dress')),
         ]
     )
 

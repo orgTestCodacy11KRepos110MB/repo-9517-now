@@ -128,8 +128,8 @@ def calculate_score_breakdown(
     query_doc: Document, retrieved_doc: Document, semantic_scores, metric
 ) -> Document:
     """
-    Calculate the score breakdown for a given retrieved document. Each SemanticScore in the indexers
-    `default_semantic_scores` should have a corresponding value, returned inside a list of scores in the documents
+    Calculate the score breakdown for a given retrieved document. Each semantic score in the indexer's
+    `semantic_scores` should have a corresponding value, returned inside a list of scores in the documents
     tags under `score_breakdown`.
 
     :param query_doc: The query document. Contains embeddings for the semantic score calculation at tag level.

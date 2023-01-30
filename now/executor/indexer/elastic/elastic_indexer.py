@@ -46,7 +46,6 @@ class NOWElasticIndexer(Executor):
         self,
         document_mappings: List[Tuple[str, int, List[str]]],
         dim: int = None,
-        ocr_is_needed: Optional[bool] = False,
         metric: str = 'cosine',
         limit: int = 10,
         max_values_per_tag: int = 10,
@@ -63,8 +62,6 @@ class NOWElasticIndexer(Executor):
         :param document_mappings: list of FieldEmbedding tuples that define which encoder
             encodes which fields, and the embedding size of the encoder.
         :param dim: Dimensionality of vectors to index.
-        :param ocr_is_needed: Boolean variable indicating whether we need to use OCR or no
-            based on the modality
         :param metric: Distance metric type. Can be 'euclidean', 'inner_product', or 'cosine'
         :param limit: Number of results to get for each query document in search
         :param max_values_per_tag: Maximum number of values per tag
@@ -76,7 +73,6 @@ class NOWElasticIndexer(Executor):
         """
 
         super().__init__(*args, **kwargs)
-        self.dim = dim
         self.metric = metric
         self.limit = limit
         self.max_values_per_tag = max_values_per_tag
@@ -84,7 +80,6 @@ class NOWElasticIndexer(Executor):
         self.index_name = index_name
         self.query_to_curated_ids = {}
         self.doc_id_tags = {}
-        self.ocr_is_needed = ocr_is_needed
         self.document_mappings = [FieldEmbedding(*dm) for dm in document_mappings]
         self.encoder_to_fields = {
             document_mapping.encoder: document_mapping.fields
@@ -100,7 +95,7 @@ class NOWElasticIndexer(Executor):
             self.es.indices.create(index=self.index_name, mappings=self.es_mapping)
 
     def setup_elastic_server(self):
-        # volume is not persisted at the moment
+        # volume is not persisted at the moment.
         try:
             subprocess.Popen(['./start-elastic-search-cluster.sh'])
             self.logger.info('elastic server started')
@@ -158,6 +153,7 @@ class NOWElasticIndexer(Executor):
 
         :param docs_map: map of encoder to DocumentArray
         :param parameters: dictionary with options for indexing.
+        :param docs: DocumentArray to index
         :return: empty `DocumentArray`.
         """
         if docs_map is None:
@@ -207,21 +203,21 @@ class NOWElasticIndexer(Executor):
                     be ignored if 'custom_bm25_query' is specified.
                 - 'custom_bm25_query' (dict): Custom query to use for BM25. Note: this query can only be
                     passed if also passing `es_mapping`. Otherwise, only default bm25 scoring is enabled.
+        :param docs: DocumentArray to search
         """
         if docs_map is None:
             docs_map = self._handle_no_docs_map(docs)
             if len(docs_map) == 0:
                 return DocumentArray()
-
         aggregate_embeddings(docs_map)
 
         limit = parameters.get('limit', self.limit)
         get_score_breakdown = parameters.get('get_score_breakdown', False)
         custom_bm25_query = parameters.get('custom_bm25_query', None)
         apply_default_bm25 = parameters.get('apply_default_bm25', False)
-        semantic_scores = parameters.get(
-            'default_semantic_scores', None
-        ) or generate_semantic_scores(docs_map, self.encoder_to_fields)
+        semantic_scores = parameters.get('semantic_scores', None)
+        if not semantic_scores:
+            semantic_scores = generate_semantic_scores(docs_map, self.encoder_to_fields)
         filter = parameters.get('filter', {})
         es_queries = build_es_queries(
             docs_map=docs_map,
@@ -251,7 +247,6 @@ class NOWElasticIndexer(Executor):
             for c in doc.chunks:
                 c.embedding = None
         results = DocumentArray(list(zip(*es_queries))[0])
-
         if (
             parameters.get('create_temp_link', False)
             and self.user_input.dataset_type == DatasetTypes.S3_BUCKET
@@ -364,7 +359,7 @@ class NOWElasticIndexer(Executor):
         return DocumentArray()
 
     @secure_request(on='/tags', level=SecurityLevel.USER)
-    def get_tags_and_values(self, **kwargs):
+    def tags(self, **kwargs):
         """
         Endpoint to get all tags and their possible values in the index.
         """
@@ -447,6 +442,8 @@ class NOWElasticIndexer(Executor):
                 # aggs['aggs'][f'avg_{tag}'] = {'avg': {'field': f'tags.{tag}'}}
                 aggs['aggs'][tag] = {'terms': {'field': f'tags.{tag}', 'size': 100}}
         try:
+            if not aggs['aggs']:
+                return
             result = self.es.search(index=self.index_name, body=aggs)
             aggregations = result['aggregations']
             updated_tags = {}

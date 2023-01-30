@@ -11,7 +11,6 @@ from pytest_mock import MockerFixture
 
 from now.deployment.deployment import terminate_wolf
 from now.executor.gateway.bff.app.app import run_server
-from now.executor.gateway.playground.playground import deploy_streamlit
 from now.utils import get_flow_id
 
 logging.basicConfig(level=logging.DEBUG)
@@ -46,7 +45,7 @@ def with_hubble_login_patch(mocker: MockerFixture) -> None:
 
 
 @pytest.fixture()
-def cleanup(dataset):
+def cleanup():
     with tempfile.TemporaryDirectory() as tmpdir:
         start = time.time()
         yield tmpdir
@@ -69,24 +68,13 @@ def cleanup(dataset):
         mins = int(now / 60)
         secs = int(now % 60)
         print(50 * '#')
-        print(
-            f'Time taken to execute deployment with dataset `{dataset}`: {mins}m {secs}s'
-        )
+        print(f'Time taken to execute deployment: {mins}m {secs}s')
         print(50 * '#')
 
 
 @pytest.fixture()
 def start_bff():
     p1 = Process(target=run_server, args=(8080,))
-    p1.daemon = True
-    p1.start()
-    yield
-    p1.terminate()
-
-
-@pytest.fixture()
-def start_playground():
-    p1 = Process(target=deploy_streamlit)
     p1.daemon = True
     p1.start()
     yield

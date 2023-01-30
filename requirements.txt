@@ -5,7 +5,6 @@ pyfiglet==0.8.post1
 cowsay==4.0
 yaspin==2.1.0
 py-cpuinfo==8.0.0
-kubernetes==23.3.0
 prompt_toolkit==3.0.28
 docarray[common]==0.19.1
 requests==2.27.1

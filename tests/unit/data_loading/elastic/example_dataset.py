@@ -3,7 +3,7 @@ import json
 import pathlib
 from typing import Dict, Optional
 
-from tests.integration.data_loading.elastic.utils import create_es_index, es_insert
+from tests.unit.data_loading.elastic.utils import create_es_index, es_insert
 
 from now.data_loading.elasticsearch import ElasticsearchConnector
 

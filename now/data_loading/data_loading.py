@@ -30,6 +30,7 @@ def load_data(user_input: UserInput, data_class=None) -> DocumentArray:
         print('⬇  Pull DocumentArray dataset')
         da = _pull_docarray(user_input.dataset_name, user_input.admin_name)
         da = _add_tags_to_da(da, user_input)
+        da = _get_da_with_index_fields(da, user_input)
     elif user_input.dataset_type == DatasetTypes.PATH:
         print('💿  Loading files from disk')
         da = _load_from_disk(user_input=user_input, data_class=data_class)
@@ -45,6 +46,19 @@ def load_data(user_input: UserInput, data_class=None) -> DocumentArray:
         )
     if 'NOW_CI_RUN' in os.environ:
         da = da[:50]
+    return da
+
+
+def _get_da_with_index_fields(da: DocumentArray, user_input: UserInput):
+    for d in da:
+        d.chunks = [getattr(d, field) for field in user_input.index_fields]
+        # keep only the index fields in metadata
+        d._metadata['multi_modal_schema'] = {
+            k: d._metadata['multi_modal_schema'][k] for k in user_input.index_fields
+        }
+        # Update the positions accordingly to access the chunks
+        for i, k in enumerate(user_input.index_fields):
+            d._metadata['multi_modal_schema'][k]['position'] = int(i)
     return da
 
 
@@ -68,9 +82,15 @@ def _add_tags_to_da(da: DocumentArray, user_input: UserInput):
     )
     for d in da:
         for field in non_index_fields:
-            non_index_field_doc = getattr(d, field, None)
+            non_index_field_doc = getattr(d, field)
+            if non_index_field_doc.blob or non_index_field_doc.tensor is not None:
+                continue
             d.tags.update(
-                {field: non_index_field_doc.content or non_index_field_doc.uri}
+                {
+                    field: non_index_field_doc.content
+                    if isinstance(non_index_field_doc.content, str)
+                    else non_index_field_doc.uri
+                }
             )
     return da
 
@@ -123,9 +143,11 @@ def _load_from_disk(user_input: UserInput, data_class: Type) -> DocumentArray:
     dataset_path = os.path.expanduser(dataset_path)
     if os.path.isfile(dataset_path):
         try:
-            docs = DocumentArray.load_binary(dataset_path)
-            if is_multimodal(docs[0]):
-                return docs
+            da = DocumentArray.load_binary(dataset_path)
+            if is_multimodal(da[0]):
+                da = _add_tags_to_da(da, user_input)
+                da = _get_da_with_index_fields(da, user_input)
+                return da
             else:
                 raise ValueError(
                     f'The file {dataset_path} does not contain a multimodal DocumentArray.'

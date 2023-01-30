@@ -49,7 +49,8 @@ class Client:
                 modalities_dict={'text': Text},
                 field_names_to_dataclass_fields={'text': 'text_0'},
             )
-
+        else:
+            raise Exception('query doc is empty')
         app_request = SearchRequestModel(
             host=f'grpcs://nowapi-{self.jcloud_id}.wolf.jina.ai',
             api_key=self.api_key,
@@ -59,6 +60,10 @@ class Client:
             app_request,
             endpoint,
             inputs=query_doc,
-            parameters={'limit': app_request.limit, 'filter': app_request.filters},
+            parameters={
+                'limit': app_request.limit,
+                'filter': app_request.filters,
+                'semantic_scores': app_request.semantic_scores,
+            },
         )
         return response

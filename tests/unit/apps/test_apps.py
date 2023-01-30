@@ -4,7 +4,6 @@ import pytest
 from docarray import Document, DocumentArray
 from docarray.typing import Text
 
-from now.app.search_app import SearchApp
 from now.app.search_app.app import SearchApp
 from now.common.options import construct_app
 from now.constants import Apps
@@ -20,12 +19,11 @@ def test_app_attributes():
             assert app_instance.description
 
 
-def test_split_text_preprocessing():
+def test_split_text_preprocessing(mm_dataclass):
     """Test if splitting of sentences is carried out when preprocessing text documents at indexing time"""
+
     app = SearchApp()
-    da = DocumentArray(
-        [Document(chunks=[Document(text='test. test', modality='text')])]
-    )
+    da = DocumentArray([Document(mm_dataclass(text='test. test'))])
     new_da = app.preprocess(da)
     assert len(new_da) == 1
     assert len(new_da[0].chunks) == 1
@@ -33,7 +31,7 @@ def test_split_text_preprocessing():
 
 
 @pytest.mark.parametrize('disable', [False, True])
-def test_disable_telemetry(disable):
+def test_disable_telemetry(disable, mm_dataclass):
     initial_value = os.environ.get('JINA_OPTOUT_TELEMETRY')
     if disable:
         os.environ['JINA_OPTOUT_TELEMETRY'] = 'disableTelemetry'
@@ -47,10 +45,9 @@ def test_disable_telemetry(disable):
     user_input.flow_name = 'flow'
     user_input.index_field_candidates_to_modalities = {'text': Text}
     user_input.index_fields = ['text']
+    user_input.model_choices = {'text_model': ['sbert']}
     user_input.app_instance = app
-    da = DocumentArray(
-        [Document(chunks=[Document(text='test. test', modality='text')])]
-    )
+    da = DocumentArray([Document(mm_dataclass(text='test. test'))])
 
     app.setup(dataset=da, user_input=user_input, data_class=None)
 

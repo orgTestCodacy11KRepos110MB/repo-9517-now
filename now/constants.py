@@ -6,8 +6,8 @@ from now.utils import BetterEnum
 
 NOW_GATEWAY_VERSION = '0.0.1-refactor-custom-gateway-40'
 NOW_PREPROCESSOR_VERSION = '0.0.121-refactor-custom-gateway-40'
-NOW_ELASTIC_INDEXER_VERSION = '0.0.142-refactor-custom-gateway-40'
-NOW_AUTOCOMPLETE_VERSION = '0.0.8-refactor-custom-gateway-40'
+NOW_ELASTIC_INDEXER_VERSION = '0.0.143-refactor-custom-gateway-40'
+NOW_AUTOCOMPLETE_VERSION = '0.0.9-refactor-custom-gateway-40'
 
 
 class Apps(BetterEnum):
@@ -20,6 +20,11 @@ class DatasetTypes(BetterEnum):
     DOCARRAY = 'docarray'
     S3_BUCKET = 's3_bucket'
     ELASTICSEARCH = 'elasticsearch'
+
+
+class Models(BetterEnum):
+    CLIP_MODEL = 'encoderclip'
+    SBERT_MODEL = 'encodersbert'
 
 
 SUPPORTED_FILE_TYPES = {
@@ -48,10 +53,17 @@ PREFETCH_NR = 10
 
 SURVEY_LINK = 'https://10sw1tcpld4.typeform.com/to/VTAyYRpR?utm_source=cli'
 
-TAG_OCR_DETECTOR_TEXT_IN_DOC = '_ocr_detector_text_in_doc'
 TAG_INDEXER_DOC_HAS_TEXT = '_indexer_doc_has_text'
-EXECUTOR_PREFIX = 'jinahub+docker://'
 ACCESS_PATHS = '@cc'
 FLOW_STATUS = 'Serving'
+
+MODALITY_TO_MODELS = {
+    Text: [
+        {'name': 'Clip', 'value': Models.CLIP_MODEL},
+        {'name': 'Sbert', 'value': Models.SBERT_MODEL},
+    ],
+    Image: [{'name': 'Clip', 'value': Models.CLIP_MODEL}],
+    Video: [{'name': 'Clip', 'value': Models.CLIP_MODEL}],
+}
 
 CG_BFF_PORT = 8080

@@ -1,17 +1,8 @@
-from collections import defaultdict, namedtuple
-from typing import Dict, List, Optional, Union
+from collections import defaultdict
+from typing import Dict, List, Optional, Tuple, Union
 
 from docarray import Document, DocumentArray
 
-SemanticScore = namedtuple(
-    'SemanticScores',
-    [
-        'query_field',
-        'document_field',
-        'encoder',
-        'linear_weight',
-    ],
-)
 metrics_mapping = {
     'cosine': 'cosineSimilarity',
     'l2_norm': 'l2norm',
@@ -21,17 +12,21 @@ metrics_mapping = {
 def generate_semantic_scores(
     docs_map: Dict[str, DocumentArray],
     encoder_to_fields: Dict[str, Union[List[str], str]],
-) -> List[SemanticScore]:
-    """Generate semantic scores from document mappings."""
+) -> List[Tuple]:
+    """
+    Generate semantic scores from document mappings.
+
+    :param docs_map: dictionary mapping encoder to DocumentArray.
+    :param encoder_to_fields: dictionary mapping encoder to fields.
+    :return: a list of semantic scores, each of which is a tuple of
+        (query_field, document_field, encoder, linear_weight).
+        Semantic scores would then be for example:
+        [('query_text', 'title', 'clip', 1.0)]
+    """
     semantic_scores = []
-    # either take fields names from _metadata, if multimodal doc
-    # or take modality from tags of root doc
     for executor_name, da in docs_map.items():
         first_doc = da[0]
-        if first_doc._metadata:  # must be a multimodal doc
-            field_names = first_doc._metadata['multi_modal_schema'].keys()
-        else:  # must be a unimodal doc
-            field_names = [first_doc.tags['modality']]
+        field_names = first_doc._metadata['multi_modal_schema'].keys()
         try:
             document_fields = encoder_to_fields[executor_name]
         except KeyError as e:
@@ -39,13 +34,16 @@ def generate_semantic_scores(
                 f'Documents are not encoded with same encoder as query. executor_name: {executor_name}, encoder_to_fields: {encoder_to_fields}'
             ) from e
         for field_name in field_names:
+            chunk = getattr(first_doc, field_name)
+            if chunk.chunks.embeddings is None and chunk.embedding is None:
+                continue
             for document_field in document_fields:
                 semantic_scores.append(
-                    SemanticScore(
-                        query_field=field_name,
-                        document_field=document_field,
-                        encoder=executor_name,
-                        linear_weight=1,
+                    (
+                        field_name,
+                        document_field,
+                        executor_name,
+                        1,
                     )
                 )
 
@@ -56,7 +54,7 @@ def build_es_queries(
     docs_map,
     apply_default_bm25: bool,
     get_score_breakdown: bool,
-    semantic_scores: List[SemanticScore],
+    semantic_scores: List[Tuple],
     custom_bm25_query: Optional[dict] = None,
     metric: Optional[str] = 'cosine',
     filter: dict = {},
@@ -76,7 +74,7 @@ def build_es_queries(
     :param get_score_breakdown: whether to return the score breakdown for matches.
         For this function, this parameter determines whether to return the embeddings
         of a query document.
-    :param semantic_scores: list of semantic scores to use for query.
+    :param semantic_scores: list of semantic scores used to calculate a score for a document.
     :param custom_bm25_query: custom query to use for BM25.
     :param metric: metric to use for vector search.
     :param filter: dictionary of filters to apply to the search.
@@ -161,7 +159,7 @@ def build_es_queries(
 def get_default_query(
     doc: Document,
     apply_default_bm25: bool,
-    semantic_scores: List[SemanticScore],
+    semantic_scores: List[Tuple],
     custom_bm25_query: Dict = None,
     filter: Dict = {},
 ):
@@ -175,12 +173,12 @@ def get_default_query(
 
     # build bm25 part
     if apply_default_bm25:
-        bm25_semantic_score = next((x for x in semantic_scores if x.encoder == 'bm25'))
+        bm25_semantic_score = next((x for x in semantic_scores if x[2] == 'bm25'))
         if not bm25_semantic_score:
             raise ValueError(
-                'No bm25 semantic scores found. Please specify this in the default_semantic_scores.'
+                'No bm25 semantic scores found. Please specify this in the semantic_scores parameter.'
             )
-        text = getattr(doc, bm25_semantic_score.query_field).text
+        text = getattr(doc, bm25_semantic_score[0]).text
         multi_match = {'multi_match': {'query': text, 'fields': ['bm25_text']}}
         query['bool']['should'].append(multi_match)
     elif custom_bm25_query:

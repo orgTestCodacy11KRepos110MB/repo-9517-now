@@ -11,13 +11,14 @@ import os
 import uuid
 
 from hubble import AuthenticationRequiredError
+
 from now.common.detect_schema import (
     set_field_names_elasticsearch,
     set_field_names_from_docarray,
     set_field_names_from_local_folder,
     set_field_names_from_s3_bucket,
 )
-from now.constants import DatasetTypes
+from now.constants import MODALITY_TO_MODELS, DatasetTypes
 from now.deployment.deployment import cmd
 from now.log import yaspin_extended
 from now.now_dataclasses import DialogOptions, UserInput
@@ -239,6 +240,31 @@ FILTER_FIELDS = DialogOptions(
 )
 
 
+def update_model_choice(user_input: UserInput, option_name, **kwargs):
+    user_input.model_choices[option_name] = kwargs.get(option_name)
+
+
+def get_models_dialog(user_input: UserInput, **kwargs):
+    models_dialog = []
+    for index_field in user_input.index_fields:
+        option_name = f'{index_field}_model'
+        models_dialog.append(
+            DialogOptions(
+                name=option_name,
+                prompt_message=f'Please select the model for {index_field}:',
+                prompt_type='checkbox',
+                choices=MODALITY_TO_MODELS[
+                    user_input.index_field_candidates_to_modalities[index_field]
+                ],
+                post_func=lambda user_input, option_name=option_name, **kwargs: update_model_choice(
+                    user_input, option_name, **kwargs
+                ),
+            )
+        )
+
+    return models_dialog
+
+
 ES_INDEX_NAME = DialogOptions(
     name='es_index_name',
     prompt_message='Please enter the name of your Elasticsearch index:',
@@ -364,6 +390,7 @@ def _jina_auth_login(user_input: UserInput, **kwargs):
 app_config = [APP_NAME]
 data_type = [DATASET_TYPE]
 data_fields = [INDEX_FIELDS, FILTER_FIELDS]
+get_models = [get_models_dialog]
 data_demo = [DEMO_DATA]
 data_da = [DOCARRAY_NAME, DATASET_PATH]
 data_s3 = [DATASET_PATH_S3, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION_NAME]
@@ -381,6 +408,7 @@ base_options = (
     + data_s3
     + data_es
     + data_fields
+    + get_models
     + app_config
     + remote_cluster
 )

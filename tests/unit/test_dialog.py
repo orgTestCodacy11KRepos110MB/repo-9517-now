@@ -48,6 +48,8 @@ MOCKED_DIALOGS_WITH_CONFIGS = [
             'index_fields': ['label'],
             'filter_fields': [],
             'filter_field_candidates_to_modalities': {'label': 'text'},
+            'label_model': ['clip'],
+            'model_choices': {'label_model': ['clip']},
             'secured': '⛔ no',
         },
         {},
@@ -62,6 +64,8 @@ MOCKED_DIALOGS_WITH_CONFIGS = [
             'index_field_candidates_to_modalities': {'label': Text, 'image': Image},
             'index_fields': ['image'],
             'filter_fields': [],
+            'image_model': ['clip'],
+            'model_choices': {'image_model': ['clip']},
             'filter_field_candidates_to_modalities': {'label': 'text'},
             'secured': '⛔ no',
         },
@@ -78,6 +82,8 @@ MOCKED_DIALOGS_WITH_CONFIGS = [
             'index_fields': ['.jpg'],
             'admin_name': 'team-now',
             'index_field_candidates_to_modalities': {'.jpg': Image},
+            '.jpg_model': ['clip'],
+            'model_choices': {'.jpg_model': ['clip']},
             'secured': '⛔ no',
         },
         {},
@@ -92,6 +98,8 @@ MOCKED_DIALOGS_WITH_CONFIGS = [
             'index_field_candidates_to_modalities': {'label': Text, 'image': Image},
             'filter_fields': [],
             'filter_field_candidates_to_modalities': {'label': 'text'},
+            'image_model': ['clip'],
+            'model_choices': {'image_model': ['clip']},
             'secured': '⛔ no',
         },
         {'app': Apps.SEARCH_APP},
@@ -111,6 +119,8 @@ MOCKED_DIALOGS_WITH_CONFIGS = [
                 'lyrics': 'text',
                 'title': 'text',
             },
+            'lyrics_model': ['clip'],
+            'model_choices': {'lyrics_model': ['clip']},
             'secured': '⛔ no',
         },
     ),
@@ -129,6 +139,8 @@ MOCKED_DIALOGS_WITH_CONFIGS = [
             },
             'filter_fields': ['title'],
             'filter_field_candidates_to_modalities': {'description': 'text'},
+            'video_model': ['clip'],
+            'model_choices': {'video_model': ['clip']},
             'secured': '⛔ no',
         },
     ),
@@ -143,6 +155,8 @@ MOCKED_DIALOGS_WITH_CONFIGS = [
             'index_field_candidates_to_modalities': {'label': Text, 'image': Image},
             'filter_fields': [],
             'filter_field_candidates_to_modalities': {'label': 'text'},
+            'image_model': ['clip'],
+            'model_choices': {'image_model': ['clip']},
             'secured': '⛔ no',
         },
         {'flow_name': 'testthisname'},
@@ -164,6 +178,14 @@ def test_configure_user_input(
     expected_user_input.__dict__.update(mocked_user_answers)
     expected_user_input.__dict__.update(configure_kwargs)
     expected_user_input.__dict__.pop('app')
+    for key in [
+        'label_model',
+        'image_model',
+        'lyrics_model',
+        'video_model',
+        '.jpg_model',
+    ]:
+        expected_user_input.__dict__.pop(key, None)
 
     # mocked user input
     mocker.patch('now.utils.prompt', CmdPromptMock(mocked_user_answers))

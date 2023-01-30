@@ -1,6 +1,5 @@
 import asyncio
 import subprocess
-import tempfile
 
 from jcloud.flow import CloudFlow
 
@@ -34,7 +33,10 @@ def list_all_wolf(status='Serving', namespace='nowapi'):
     jflows = loop.run_until_complete(CloudFlow().list_all(phase=status))['flows']
     # Transform the JCloud flow response to a much simpler list of dicts
     for flow in jflows:
-        flows.append({'id': flow['id'], 'name': flow['status']['endpoints']['gateway']})
+        executor_name = list(flow['status']['endpoints'].keys())[0]
+        flows.append(
+            {'id': flow['id'], 'name': flow['status']['endpoints'][executor_name]}
+        )
     # filter by namespace - if the namespace is contained in the flow name
     if namespace:
         return [f for f in flows if namespace in f['id']]

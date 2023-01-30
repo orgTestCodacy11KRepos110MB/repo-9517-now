@@ -12,7 +12,6 @@ from tqdm import tqdm
 
 from now.admin.update_api_keys import update_api_keys
 from now.app.base.app import JinaNOWApp
-from now.common.testing import handle_test_mode
 from now.constants import ACCESS_PATHS, DatasetTypes
 from now.data_loading.create_dataclass import create_dataclass
 from now.data_loading.data_loading import load_data
@@ -58,7 +57,6 @@ def run(
         data_class=data_class,
     )
 
-    handle_test_mode(env_dict)
     add_env_variables_to_flow(app_instance, env_dict)
     (client, gateway_port, gateway_host_internal,) = deploy_flow(
         flow_yaml=app_instance.flow_yaml,

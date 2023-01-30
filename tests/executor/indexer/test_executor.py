@@ -64,7 +64,7 @@ def test_index_and_search_with_multimodal_docs(
         parameters={
             'get_score_breakdown': True,
             'apply_default_bm25': True,
-            'default_semantic_scores': default_semantic_scores,
+            'semantic_scores': default_semantic_scores,
         },
     )
     # asserts about matches
@@ -230,7 +230,7 @@ def test_custom_mapping_and_custom_bm25_search(
         parameters={
             'get_score_breakdown': True,
             'custom_bm25_query': custom_bm25_query,
-            'default_semantic_scores': default_semantic_scores,
+            'semantic_scores': default_semantic_scores,
         },
     )
     assert len(results[0].matches) == 2
@@ -261,7 +261,7 @@ def test_search_with_filter(setup_service_running, es_inputs, random_index_name)
         parameters={
             'get_score_breakdown': True,
             'apply_default_bm25': True,
-            'default_semantic_scores': default_semantic_scores,
+            'semantic_scores': default_semantic_scores,
             'filter': {'tags__price': {'$lte': 1}},
         },
     )

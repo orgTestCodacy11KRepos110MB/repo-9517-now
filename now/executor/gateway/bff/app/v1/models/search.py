@@ -45,6 +45,11 @@ class SearchRequestModel(BaseRequestModel):
         description='If true, a temporary link to the file is created. '
         'This is useful if the file is stored in a cloud bucket.',
     )
+    semantic_scores: List[Tuple] = Field(
+        default=None,
+        description='List of tuples where each tuple contains a query_field, index_field, encoder_name and weight. '
+        'This defines how scores should be calculated for documents.',
+    )
 
 
 class SearchResponseModel(BaseModel):

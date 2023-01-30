@@ -1,0 +1,54 @@
+name: Update Durations
+on:
+  workflow_dispatch:
+
+jobs:
+  update-durations:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.7
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.7
+      - name: Add JCloud auth token
+        run: |
+          mkdir -p ~/.jina
+          touch ~/.jina/config.json
+          echo "{\"auth_token\": \"${WOLF_TOKEN}\"}" > ~/.jina/config.json
+          cat ~/.jina/config.json
+        env:
+          WOLF_TOKEN: ${{ secrets.WOLF_TOKEN }}
+      - name: Prepare environment
+        run: |
+          sudo apt update
+          sudo apt install gh
+          python -m pip install --upgrade pip
+          python -m pip install wheel
+          pip install --no-cache-dir ".[full,test]"
+      - name: create durations
+        id: test
+        run: |
+          rm .test_durations
+          pytest --suppress-no-test-exit-code -v -s -m "not gpu" --store-durations tests/
+        timeout-minutes: 100
+        env:
+          WOLF_TOKEN: ${{ secrets.WOLF_TOKEN }}
+          S3_SCHEMA_FOLDER_PATH: ${{ secrets.S3_SCHEMA_FOLDER_PATH }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          S3_CUSTOM_DATA_PATH: ${{ secrets.S3_CUSTOM_DATA_PATH }}
+
+      - name: Commit and push new durations file
+        run: |
+          git config --local user.email "dev-bot@jina.ai"
+          git config --local user.name "Jina Dev Bot"
+          branch_name="update-durations-$(date +'%Y-%m-%d-%H-%M-%S')"
+          git checkout -b $branch_name
+          git add .test_durations
+          git status
+          git commit -m "refactor: update durations"
+          git push origin $branch_name
+          gh pr create --title "refactor: update durations" --body "refactor: update durations"
+        env:
+          GH_TOKEN: ${{ github.token }}

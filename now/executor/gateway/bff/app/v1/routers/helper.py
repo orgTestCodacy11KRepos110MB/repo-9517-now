@@ -23,7 +23,6 @@ def field_dict_to_mm_doc(
     field_names_to_dataclass_fields={},
 ) -> Document:
     """Converts a dictionary of field names to their values to a document.
-
     :param field_dict: key-value pairs of field names and their values
     :param data_class: @docarray.dataclass class which encapsulates the fields of the multimodal document
     :param modalities_dict: dictionary of field names to their modalities
@@ -96,7 +95,6 @@ async def jina_client_post(
     **kwargs,
 ) -> DocumentArray:
     """Posts to the endpoint of the Jina client.
-
     :param request_model: contains the request model of the flow
     :param endpoint: endpoint which shall be called, e.g. '/index' or '/search'
     :param docs: document(s) which shall be passed in

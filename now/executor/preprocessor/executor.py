@@ -4,12 +4,12 @@ import random
 import string
 import tempfile
 import urllib
+from typing import Dict
 
 from jina import Document, DocumentArray
-from paddleocr import PaddleOCR
 
 from now.app.base.app import JinaNOWApp
-from now.constants import ACCESS_PATHS, TAG_OCR_DETECTOR_TEXT_IN_DOC, DatasetTypes
+from now.constants import DatasetTypes
 from now.executor.abstract.auth import (
     SecurityLevel,
     get_auth_executor_class,
@@ -30,15 +30,6 @@ class NOWPreprocessor(Executor):
 
         self.app: JinaNOWApp = JinaNOWApp()
         self.max_workers = max_workers
-        self.paddle_ocr = PaddleOCR(use_angle_cls=True, lang='en', show_log=False)
-
-    def _ocr_detect_text(self, docs: DocumentArray):
-        """Iterates over all documents, detects text in images and saves it into the tags of the document."""
-        for doc in docs[ACCESS_PATHS]:
-            if doc.modality == 'image':
-                ocr_result = self.paddle_ocr.ocr(doc.blob)
-                text_list = [text for _, (text, _) in ocr_result[0]]
-                doc.tags[TAG_OCR_DETECTOR_TEXT_IN_DOC] = ' '.join(text_list)
 
     @staticmethod
     def _save_uri_to_tmp_file(uri, tmpdir) -> str:
@@ -58,7 +49,7 @@ class NOWPreprocessor(Executor):
 
     @secure_request(on=None, level=SecurityLevel.USER)
     def preprocess(self, docs: DocumentArray, *args, **kwargs) -> DocumentArray:
-        """If necessary downloads data from cloud bucket. Applies preprocessing to documents as defined by apps.
+        """If necessary downloads data from cloud bucket. Applies preprocessing to document as defined by apps.
 
         :param docs: loaded data but not preprocessed
         :return: preprocessed documents which are ready to be encoded and indexed
@@ -91,7 +82,6 @@ class NOWPreprocessor(Executor):
                 )
 
             docs = self.app.preprocess(docs)
-            self._ocr_detect_text(docs)
 
             # as _maybe_download_from_s3 moves S3 URI to tags['uri'], need to move it back for post-processor & accurate
             # results.
@@ -112,3 +102,25 @@ class NOWPreprocessor(Executor):
                         # TODO please fix this hack - uri should not be in tags
                         move_uri(c)
         return docs
+
+    @secure_request(on='/get_index_fields', level=SecurityLevel.USER)
+    def get_index_fields(self, **kwargs) -> Dict:
+        index_field_candidates_to_modalities = (
+            self.user_input.index_field_candidates_to_modalities
+        )
+        index_fields = self.user_input.index_fields
+        index_fields_dict = {
+            field: modality
+            for field, modality in index_field_candidates_to_modalities.items()
+            if field in index_fields
+        }  # should be a dict of selected index fields and their modalities
+        return DocumentArray(
+            [
+                Document(
+                    text='index_fields',
+                    tags={
+                        'index_fields_dict': index_fields_dict,
+                    },
+                )
+            ]
+        )

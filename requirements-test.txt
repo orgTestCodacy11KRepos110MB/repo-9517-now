@@ -12,8 +12,6 @@ fast-autocomplete==0.9.0
 Levenshtein==0.20.5
 python-Levenshtein==0.20.5
 better_profanity==0.7.0
-paddlepaddle==2.4.0rc0
-paddleocr>=2.0.1
 filetype
 streamlit==1.16.0
 extra-streamlit-components==0.1.55
@@ -23,3 +21,4 @@ uvicorn==0.17.6
 uvloop==0.16.0
 pydantic==1.9.2
 frozendict==2.3.4
+av==9.1.1

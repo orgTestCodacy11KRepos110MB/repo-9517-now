@@ -98,28 +98,7 @@ respectively. You can choose from the fields that are available in your data. Fo
 [guide to loading your data](https://now.jina.ai/user-guides/input_format/).
 
 
-**2.** Choose your deployment type.
-
-We recommend cloud deployment to run your app on our servers. Alternatively, you can deploy locally.
-
-```commandline
-? Where do you want to deploy your search engine?  (Use arrow keys)
- ❯ ⛅️ Jina Cloud
-   📍 Local
-```
-
-For local deployment, NOW asks where you want to deploy it and reads your local `.kube/config` and lists all Kubernetes clusters you have access to.
-If you don't want to use an existing cluster, you can create a new one locally.
-
-```commandline
-? Which cluster do you want to use to deploy your search engine? (Use arrow keys)
-    kind-jina-now
-    minikube
-  ❯ 🐣create new
-```
-
-
-**3.** Follow the links. After NOW finishes processing, you'll see two links:
+**2.** Follow the links. After NOW finishes processing, you'll see two links:
 
 - The Swagger UI is useful for frontend integration.
 - The "playground" lets you run example queries and experiment with your search use case.

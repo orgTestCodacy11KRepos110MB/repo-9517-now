@@ -36,7 +36,7 @@ def test_text_search_fails_with_empty_query(client: requests.Session):
         )
 
 
-def test_text_search_calls_flow(
+def test_image_search_calls_flow(
     client_with_mocked_jina_client: Callable[[DocumentArray], requests.Session],
     sample_search_response_text: DocumentArray,
     base64_image_string: str,
@@ -78,7 +78,7 @@ def test_multimodal_search_calls_flow(
     assert results[0].tags['parameters']['limit'] == 10
 
 
-def test_text_search_parse_response(
+def test_image_search_parse_response(
     client_with_mocked_jina_client: Callable[[DocumentArray], requests.Session],
     sample_search_response_text: DocumentArray,
     base64_image_string: str,
@@ -106,3 +106,27 @@ def test_text_search_parse_response(
         results.append(doc)
     assert len(results) == len(sample_search_response_text[0].matches)
     assert results[0].text == sample_search_response_text[0].matches[0].text
+
+
+def test_text_search_with_semantic_scores(
+    client_with_mocked_jina_client: Callable[[DocumentArray], requests.Session],
+    sample_search_response_text: DocumentArray,
+    base64_image_string: str,
+):
+    """
+    Test that semantic_scores can be passed as parameters to the search endpoint.
+    """
+    response = client_with_mocked_jina_client(sample_search_response_text).post(
+        '/api/v1/search-app/search',
+        json={
+            'query': [
+                {'name': 'text', 'value': 'this crazy text', 'modality': 'text'},
+            ],
+            'semantic_scores': [['text', 'text', 'clip', 1]],
+        },
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    results = DocumentArray.from_json(response.content)
+    # the mock writes the call args into the response tags
+    assert results[0].tags['parameters']['semantic_scores']

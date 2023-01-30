@@ -5,23 +5,23 @@ from now.executor.autocomplete.executor import NOWAutoCompleteExecutor2
 from now.executor.gateway import NOWGateway
 
 
-def test_autocomplete(tmpdir):
+def test_autocomplete(tmpdir, mm_dataclass):
     with Flow().config_gateway(
         uses=NOWGateway,
-        protocol=['grpc'],
+        protocol=['http'],
     ).add(uses=NOWAutoCompleteExecutor2, workspace=tmpdir) as f:
         f.post(
             on='/search',
             inputs=DocumentArray(
                 [
-                    Document(chunks=[Document(text='background')]),
-                    Document(chunks=[Document(text='background')]),
-                    Document(chunks=[Document(text='bang')]),
-                    Document(chunks=[Document(text='loading')]),
-                    Document(chunks=[Document(text='loading')]),
-                    Document(chunks=[Document(text='laugh')]),
-                    Document(chunks=[Document(text='hello')]),
-                    Document(chunks=[Document(text='red long dress')]),
+                    Document(mm_dataclass(text='background')),
+                    Document(mm_dataclass(text='background')),
+                    Document(mm_dataclass(text='bang')),
+                    Document(mm_dataclass(text='loading')),
+                    Document(mm_dataclass(text='loading')),
+                    Document(mm_dataclass(text='laugh')),
+                    Document(mm_dataclass(text='hello')),
+                    Document(mm_dataclass(text='red long dress')),
                 ]
             ),
         )

@@ -65,11 +65,7 @@ def start_now(**kwargs):
             gateway_port,
             gateway_host_internal,
         ) = run_backend.run(app_instance, user_input, **kwargs)
-    if os.environ.get('NOW_TESTING', False):
-        bff_playground_host = 'http://localhost'
-        bff_port = '9090'
-        playground_port = '80'
-    elif 'NOW_CI_RUN' in os.environ:
+    if 'NOW_CI_RUN' in os.environ:
         bff_playground_host = 'http://localhost'
         bff_port = '8080'
         playground_port = '30080'

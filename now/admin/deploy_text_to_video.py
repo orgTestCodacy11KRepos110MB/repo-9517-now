@@ -16,7 +16,6 @@ def deploy():
         'aws_access_key_id': '',
         'aws_secret_access_key': '',
         'aws_region_name': '',
-        'proceed': True,
         'secured': True,
         'additional_user': True,
         'user_emails': [],

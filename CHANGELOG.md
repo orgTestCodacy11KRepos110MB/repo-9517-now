@@ -42,6 +42,7 @@
 
 
 
+
 <a name=release-note-0-0-7></a>
 ## Release Note (`0.0.7`)
 
@@ -1435,4 +1436,43 @@
 ### 🍹 Other Improvements
 
  - [[```36576aed```](https://github.com/jina-ai/now/commit/36576aed3fa8886d64380583c45cd9b9acdde4d2)] __-__ __version__: the next version will be 0.0.49 (*Jina Dev Bot*)
+
+<a name=release-note-0-0-50></a>
+## Release Note (`0.0.50`)
+
+> Release time: 2023-01-20 13:26:06
+
+
+
+🙇 We'd like to thank all contributors for this new release! In particular,
+ Mohammad Kalim Akram,  IyadhKhalfallah,  Florian Hönicke,  Aziz Belaweid,  Jina Dev Bot,  🙇
+
+
+### 🆕 New Features
+
+ - [[```67af75dc```](https://github.com/jina-ai/now/commit/67af75dcb529c49058325eb23b8b537e8569bfbb)] __-__ playground accepts multiple modalities for query (#939) (*IyadhKhalfallah*)
+ - [[```0f0bf2e6```](https://github.com/jina-ai/now/commit/0f0bf2e6c7f50d5ee66a475a83644eb5fdb482c9)] __-__ mmdocs in bff (#936) (*Aziz Belaweid*)
+
+### 🐞 Bug fixes
+
+ - [[```06c3432d```](https://github.com/jina-ai/now/commit/06c3432d791f720174630ab438f756a7eb883b0a)] __-__ bump version number (#958) (*Mohammad Kalim Akram*)
+ - [[```ff4b1882```](https://github.com/jina-ai/now/commit/ff4b1882cf7a77b0e7a502ecc749550628b98fca)] __-__ playground import (#955) (*Florian Hönicke*)
+ - [[```011a5bcb```](https://github.com/jina-ai/now/commit/011a5bcb32c066eab179d673de2d490807167b39)] __-__ update stop (#940) (*Mohammad Kalim Akram*)
+
+### 🧼 Code Refactoring
+
+ - [[```90e5ae5a```](https://github.com/jina-ai/now/commit/90e5ae5a568b23a298a330aed66b457d5a11dcd1)] __-__ cleanup (#957) (*Florian Hönicke*)
+ - [[```36d7ea68```](https://github.com/jina-ai/now/commit/36d7ea68d2efa900a1c30d6fbd2b26e2ac16983a)] __-__ no executor tests (#774) (*Florian Hönicke*)
+ - [[```98a5980f```](https://github.com/jina-ai/now/commit/98a5980f220bfd764a4760a866d56f6b1e8d386d)] __-__ remove ocr detector (#951) (*Aziz Belaweid*)
+ - [[```5fc197d7```](https://github.com/jina-ai/now/commit/5fc197d7a1e0ad1d61c1ad049a7266369108e90c)] __-__ remove k8s deployment (#948) (*Florian Hönicke*)
+
+### 🏁 Unit Test and CICD
+
+ - [[```85ffd5cc```](https://github.com/jina-ai/now/commit/85ffd5cc79618b6b0e5d6ffdcee9afe6a51f458f)] __-__ optimize tests (#946) (*Florian Hönicke*)
+ - [[```d1947849```](https://github.com/jina-ai/now/commit/d194784948a9905be1c4638c445c7e5f505ccc58)] __-__ distribute even (#947) (*Florian Hönicke*)
+
+### 🍹 Other Improvements
+
+ - [[```29c4329c```](https://github.com/jina-ai/now/commit/29c4329c9824272f97c9ad655889b69b8e20bc7d)] __-__ Fix playground import (#956) (*Florian Hönicke*)
+ - [[```dbea6988```](https://github.com/jina-ai/now/commit/dbea69880d6a053da622dd8df75cba67fea1250b)] __-__ __version__: the next version will be 0.0.50 (*Jina Dev Bot*)
 

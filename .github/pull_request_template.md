@@ -1,8 +1,9 @@
-<!--- PR Description here --->
+<!--- Please add PR Description here --->
 
 
 ---
 
 - [ ] This PR references an open issue
-- [ ] Test added
-- [ ] Documentation adjusted
+- [ ] Added a test
+- [ ] Updated the documentation
+- [ ] Added a screenshot of a successful customer deployment

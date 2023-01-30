@@ -46,7 +46,6 @@ async def search(data: SearchRequestModel):
         modalities_dict=fields_modalities_mapping,
         field_names_to_dataclass_fields=field_names_to_dataclass_fields,
     )
-
     query_filter = {}
     for key, value in data.filters.items():
         key = 'tags__' + key if not key.startswith('tags__') else key
@@ -59,20 +58,31 @@ async def search(data: SearchRequestModel):
             'limit': data.limit,
             'filter': query_filter,
             'create_temp_link': data.create_temp_link,
+            'semantic_scores': data.semantic_scores,
         },
         request_model=data,
     )
     matches = []
     for doc in docs[0].matches:
-        doc.summary()
-        # todo: use multimodal doc in the future
+        # todo: use multimodal doc in the future!
         scores = {}
         for score_name, named_score in doc.scores.items():
             scores[score_name] = named_score.to_dict()
-        field_names = doc._metadata['multi_modal_schema'].keys()
-        field_names_and_chunks = [
-            [field_name, getattr(doc, field_name)] for field_name in field_names
-        ]
+        # since multimodal doc is not supported, we take the first chunk
+        if doc.chunks:
+            # temporary fix for filtering out tags
+            field_names = [
+                field
+                for field in doc._metadata['multi_modal_schema'].keys()
+                if doc._metadata['multi_modal_schema'][field]['attribute_type']
+                != 'primitive'
+            ]
+            field_names_and_chunks = [
+                [field_name, getattr(doc, field_name)] for field_name in field_names
+            ]
+        else:
+            # TODO remove else path. It is only used to support the inmemory indexer since that one is operating on chunks while elastic responds with root documents
+            field_names_and_chunks = [['result_field', doc]]
         results = {}
         for field_name, chunk in field_names_and_chunks:
             if chunk.blob:

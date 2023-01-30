@@ -40,7 +40,7 @@ jobs:
           WOLF_TOKEN: ${{ secrets.WOLF_TOKEN }}
       - name: Test
         id: test
-        run: pytest --suppress-no-test-exit-code --ignore-glob=tests/executor -v -s -m "not gpu" --splits 9 --group ${{ matrix.group }} --splitting-algorithm least_duration tests/
+        run: pytest --suppress-no-test-exit-code -v -s -m "not gpu" --splits 9 --group ${{ matrix.group }} --splitting-algorithm least_duration tests/
         timeout-minutes: 35
         env:
           WOLF_TOKEN: ${{ secrets.WOLF_TOKEN }}
@@ -53,40 +53,10 @@ jobs:
 #        uses: mxschmitt/action-tmate@v3
 #        timeout-minutes: 60
 
-  executor-test:
-    if: |
-      !startsWith(github.event.head_commit.message, 'chore') &&
-      !startsWith(github.event.head_commit.message, 'build: hotfix') &&
-      !endsWith(github.event.head_commit.message, 'reformatted by jina-dev-bot')
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python 3.7
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.7
-      - name: Prepare environment
-        run: |
-          sudo apt update && sudo apt install ffmpeg tesseract-ocr
-          python -m pip install --upgrade pip
-          python -m pip install wheel
-          pip install --no-cache-dir ".[full,test]"
-      - name: Test executors separately
-        timeout-minutes: 15
-        run: |
-          pytest --suppress-no-test-exit-code -v -s tests/executor/auth
-          pytest --suppress-no-test-exit-code -v -s tests/executor/indexer
-          pytest --suppress-no-test-exit-code -v -s tests/executor/preprocessor
-          pytest --suppress-no-test-exit-code -v -s tests/executor/autocomplete
-#      - name: Setup tmate session for debugging
-#        if: ${{ failure() || (github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled) }}
-#        uses: mxschmitt/action-tmate@v3
-#        timeout-minutes: 60
-
 
   prerelease:
     runs-on: ubuntu-latest
-    needs: [core-test, executor-test]
+    needs: [core-test]
     steps:
       - uses: actions/checkout@v2
         with:
@@ -103,7 +73,7 @@ jobs:
 
   update-deployment-if-required:
     runs-on: ubuntu-latest
-    needs: [core-test, executor-test]
+    needs: [core-test]
     steps:
       - uses: actions/checkout@v2
       - name: Check if deployment has changed

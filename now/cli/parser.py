@@ -87,7 +87,7 @@ def set_start_parser(sp):
 
     # Add common app options
     for option in options.base_options:
-        if option.is_terminal_command:
+        if getattr(option, 'is_terminal_command', False):
             _kwargs = {
                 'help': option.description,
                 'type': str,

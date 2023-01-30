@@ -15,17 +15,9 @@ from better_profanity import profanity
 from docarray import Document, DocumentArray
 from jina import Client
 from streamlit.runtime.scriptrunner import add_script_run_ctx
-
-# from streamlit.scriptrunner import add_script_run_ctx
 from streamlit.web.server.server import Server
-
-# from streamlit.scriptrunner import add_script_run_ctx
-# from streamlit.server.server import Server
 from tornado.httputil import parse_cookie
 
-# from streamlit_webrtc import WebRtcMode, webrtc_streamer
-# from streamlit.scriptrunner import add_script_run_ctx
-# from streamlit.server.server import Server
 from now.executor.gateway.playground.src.constants import (
     BUTTONS,
     S3_DEMO_PATH,
@@ -35,13 +27,8 @@ from now.executor.gateway.playground.src.constants import (
 )
 from now.executor.gateway.playground.src.search import (
     get_query_params,
-    search_by_image,
-    search_by_text,
+    multimodal_search,
 )
-
-# from streamlit.scriptrunner import add_script_run_ctx
-# from streamlit.web.server.server import Server
-
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -119,22 +106,34 @@ def deploy_streamlit():
 
         setup_design()
 
-        if params.host and st.session_state.filters == 'notags':
-            client = Client(host=params.host)
-            try:
-                if params.secured.lower() == 'true':
-                    response = client.post(
-                        on='/tags',
-                        parameters={
-                            'jwt': {'token': st.session_state.jwt_val['token']}
-                        },
+        client = Client(host=params.host)
+
+        if params.host:
+            if st.session_state.filters == 'notags':
+                try:
+                    tags = get_info_from_endpoint(
+                        client, params, endpoint='/tags', info='tags'
                     )
-                else:
-                    response = client.post(on='/tags')
-                st.session_state.filters = OrderedDict(response[0].tags['tags'])
+                    st.session_state.filters = tags
+                except Exception as e:
+                    print("Filters couldn't be loaded from the endpoint properly.", e)
+                    st.session_state.filters = 'notags'
+        if not st.session_state.index_fields_dict:
+            # get index fields from user input
+            try:
+                index_fields_dict = get_info_from_endpoint(
+                    client,
+                    params,
+                    endpoint='/get_index_fields',
+                    info='index_fields_dict',
+                )
+                st.session_state.index_fields_dict = index_fields_dict
             except Exception as e:
-                print("Filters couldn't be loaded from the endpoint properly.", e)
-                st.session_state.filters = 'notags'
+                print(
+                    "Index fields couldn't be loaded from the endpoint properly. "
+                    "Semantic scores will be automatically defined.",
+                    e,
+                )
 
         filter_selection = {}
         if st.session_state.filters != 'notags':
@@ -153,22 +152,40 @@ def deploy_streamlit():
             for tag, values in st.session_state.filters.items():
                 values.insert(0, 'All')
                 filter_selection[tag] = st.sidebar.selectbox(tag, values)
+        l, r = st.columns([5, 5])
+        with l:
+            st.header('Text')
+            render_mm_query(st.session_state['query'], 'text')
+        with r:
+            st.header('Image')
+            render_mm_query(st.session_state['query'], 'image')
 
-        media_type = st.radio(
-            '',
-            ['Text', 'Image'],
-            on_change=clear_match,
-        )
+        customize_semantic_scores()
 
-        if media_type == 'Image':
-            render_image(da_img, deepcopy(filter_selection))
-
-        elif media_type == 'Text':
-            render_text(da_txt, deepcopy(filter_selection))
-
+        if st.button('Search', key='mm_search', on_click=clear_match):
+            st.session_state.matches = multimodal_search(
+                query_field_values_modalities=list(
+                    filter(
+                        lambda x: x['value'], list(st.session_state['query'].values())
+                    )
+                ),
+                jwt=st.session_state.jwt_val,
+                filter_dict=filter_selection,
+            )
         render_matches()
 
         add_social_share_buttons()
+
+
+def get_info_from_endpoint(client, params, endpoint, info) -> dict:
+    if params.secured.lower() == 'true':
+        response = client.post(
+            on=endpoint,
+            parameters={'jwt': {'token': st.session_state.jwt_val['token']}},
+        )
+    else:
+        response = client.post(on=endpoint)
+    return OrderedDict(response[0].tags[info])
 
 
 def render_auth_components(params):
@@ -304,60 +321,124 @@ def setup_design():
     )
 
 
-def render_image(da_img, filter_selection):
-    upload_c, preview_c = st.columns([12, 1])
-    query = upload_c.file_uploader("", on_change=clear_match)
-    if query:
-        doc = convert_file_to_document(query)
-        st.image(doc.blob, width=160)
-        st.session_state.matches = search_by_image(
-            document=doc,
-            jwt=st.session_state.jwt_val,
-            filter_selection=filter_selection,
-        )
-    if da_img:
-        st.subheader('samples:')
-        img_cs = st.columns(5)
-        txt_cs = st.columns(5)
-        for doc, c, txt in zip(da_img, img_cs, txt_cs):
-            with c:
-                st.image(doc.blob if doc.blob else doc.tensor, width=100)
-            with txt:
-                if st.button('Search', key=doc.id, on_click=clear_match):
-                    st.session_state.matches = search_by_image(
-                        document=doc,
-                        jwt=st.session_state.jwt_val,
-                        filter_selection=filter_selection,
-                    )
+def delete_semantic_scores():
+    st.session_state['len_semantic_scores'] = 0
+    st.session_state.semantic_scores = {}
 
 
-def render_text(da_txt, filter_selection):
-    query = st.text_input('', key='text_search_box', on_change=clear_match)
-    if query:
-        st.session_state.matches = search_by_text(
-            search_text=query,
-            jwt=st.session_state.jwt_val,
-            filter_selection=filter_selection,
-        )
-    if st.button('Search', key='text_search', on_click=clear_match):
-        st.session_state.matches = search_by_text(
-            search_text=query,
-            jwt=st.session_state.jwt_val,
-            filter_selection=filter_selection,
-        )
+def toggle_bm25_slider():
+    if st.session_state.show_bm25_slider:
+        st.session_state.show_bm25_slider = False
+    else:
+        st.session_state.show_bm25_slider = True
 
-    if da_txt:
-        st.subheader('samples:')
-        c1, c2, c3 = st.columns(3)
-        c4, c5, c6 = st.columns(3)
-        for doc, col in zip(da_txt, [c1, c2, c3, c4, c5, c6]):
-            with col:
-                if st.button(doc.content, key=doc.id, on_click=clear_text):
-                    st.session_state.matches = search_by_text(
-                        search_text=doc.content,
-                        jwt=st.session_state.jwt_val,
-                        filter_selection=filter_selection,
-                    )
+
+def customize_semantic_scores():
+    input_modalities = [
+        field['modality'] for field in list(st.session_state.query.values())
+    ]  # TODO: update this
+    add, delete, bm25 = st.columns([0.3, 0.3, 0.3])
+    if add.button('Add semantic score', key='sem_score_button'):
+        st.session_state['len_semantic_scores'] += 1
+    if st.session_state.len_semantic_scores > 0:
+        delete.button(
+            label='Delete all semantic scores',
+            key='delete',
+            on_click=delete_semantic_scores,
+        )
+    if 'text' in input_modalities and any(
+        field_mod == 'text'
+        for field_mod in list(st.session_state.index_fields_dict.values())
+    ):
+        bm25.button('Add bm25 score', key='bm25', on_click=toggle_bm25_slider)
+        if st.session_state.show_bm25_slider:
+            query_field_selectbox, bm25_slider = st.columns([0.5, 0.5])
+            q_field = query_field_selectbox.selectbox(
+                'Select query field for bm25 scoring',
+                options=[field for field in st.session_state.query.keys()],
+            )
+            bm25_weight = bm25_slider.slider(
+                label='Adjust bm25 weight',
+                min_value=0.0,
+                max_value=1.0,
+                value=0.5,
+                key='weight_bm25',
+            )
+            st.session_state.semantic_scores['bm25'] = [
+                'query_text',
+                'bm25_text',
+                'bm25',
+                bm25_weight,
+            ]
+
+    for i in range(st.session_state['len_semantic_scores']):
+        query_field, index_field, encoder, weight = st.columns([0.25, 0.25, 0.25, 0.25])
+        q_field = query_field.selectbox(
+            label='query field',
+            options=list(st.session_state.query.keys()),
+            key='query_field_' + str(i),
+        )
+        id_field = index_field.selectbox(
+            label='index field',
+            options=st.session_state.index_fields_dict.keys(),
+            key='index_field_' + str(i),
+        )
+        enc = encoder.selectbox(
+            label='encoder', options=['clip'], key='encoder_' + str(i)
+        )
+        w = weight.slider(
+            label='weight',
+            min_value=0.0,
+            max_value=1.0,
+            value=0.5,
+            key='weight_' + str(i),
+        )
+        st.session_state.semantic_scores[f'{i}'] = [q_field, id_field, enc, w]
+
+
+def render_mm_query(query, modality):
+    if st.button("+", key=f'{modality}'):
+        st.session_state[f"len_{modality}_choices"] += 1
+    if modality == 'text':
+        for field_number in range(st.session_state[f"len_{modality}_choices"]):
+            key = f'{modality[0]}_{field_number+1}'
+            query[key] = {
+                'name': 'text',
+                'value': st.text_input(
+                    label=f'text #{field_number + 1}',
+                    key=key,
+                    on_change=clear_match,
+                    placeholder=f'Write your text query #{field_number + 1}',
+                ),
+                'modality': 'text',
+            }
+
+    else:
+        for field_number in range(st.session_state[f"len_{modality}_choices"]):
+            key = f'{modality[0]}_{field_number}'
+            uploaded_image = st.file_uploader(
+                label=f'image #{field_number + 1}', key=key, on_change=clear_match
+            )
+            if uploaded_image:
+                doc = convert_file_to_document(uploaded_image)
+                query_doc = doc
+                if query_doc.blob == b'':
+                    if query_doc.tensor is not None:
+                        query_doc.convert_image_tensor_to_blob()
+                    elif (query_doc.uri is not None) and query_doc.uri != '':
+                        query_doc.load_uri_to_blob(timeout=10)
+                query[key] = {
+                    'name': 'blob',
+                    'value': base64.b64encode(query_doc.blob).decode('utf-8'),
+                    'modality': 'image',
+                }
+    if st.session_state[f"len_{modality}_choices"] >= 1:
+        st.button(
+            "-",
+            key=f'{modality}',
+            on_click=decrement_inputs,
+            kwargs=dict(modality=modality),
+        )
 
 
 def render_matches():
@@ -496,6 +577,10 @@ def decrement_page():
     st.session_state.page_number -= 1
 
 
+def decrement_inputs(modality):
+    st.session_state[f"len_{modality}_choices"] -= 1
+
+
 def clear_match():
     st.session_state.matches = (
         None  # TODO move this to when we choose a suggestion or search button
@@ -631,6 +716,30 @@ def setup_session_state():
 
     if 'filters_set' not in st.session_state:
         st.session_state.filters_set = False
+
+    if "len_text_choices" not in st.session_state:
+        st.session_state["len_text_choices"] = 1
+
+    if "len_image_choices" not in st.session_state:
+        st.session_state["len_image_choices"] = 1
+
+    if "query" not in st.session_state:
+        st.session_state['query'] = dict()
+
+    if 'len_semantic_scores' not in st.session_state:
+        st.session_state['len_semantic_scores'] = 0
+
+    if 'index_fields_dict' not in st.session_state:
+        st.session_state.index_fields_dict = {}
+
+    if 'encoder' not in st.session_state:
+        st.session_state.encoder = 'clip'
+
+    if 'semantic_scores' not in st.session_state:
+        st.session_state.semantic_scores = {}
+
+    if 'show_bm25_slider' not in st.session_state:
+        st.session_state.show_bm25_slider = False
 
 
 if __name__ == '__main__':

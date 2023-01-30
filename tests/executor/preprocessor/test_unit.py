@@ -1,12 +1,8 @@
 import os
 import shutil
-from unittest.mock import MagicMock, Mock
 
-import pytest
 from docarray import Document, DocumentArray
 
-import now.utils
-from now.constants import TAG_OCR_DETECTOR_TEXT_IN_DOC, DatasetTypes
 from now.executor.preprocessor import NOWPreprocessor
 
 curdir = os.path.dirname(os.path.abspath(__file__))
@@ -17,70 +13,13 @@ def download_mock(url, destfile):
     shutil.copyfile(path, destfile)
 
 
-@pytest.mark.parametrize(
-    'file_path, modality, num_chunks, ocr_text',
-    [
-        (
-            'image/b.jpg',
-            'image',
-            1,
-            'RichavdE',  # with larger resolution it would be the following text: 'Richard Branson TotallyLooksLike.com Zaphod Beeblebrox',
-        ),
-        ('gif/folder1/file.gif', 'video', 3, 'e'),
-    ],
-)
-def test_ocr_with_bucket(file_path, modality, num_chunks, ocr_text):
-    uri = f's3://bucket_name/resources/{file_path}'
-    da_index = DocumentArray(
-        [
-            Document(
-                chunks=[
-                    Document(
-                        uri=uri,
-                        modality=modality,
-                    )
-                ]
-            )
-            for _ in range(1)  # changing range here from 2 to 1 to fix threading issues
-        ]
-    )
-    preprocessor = NOWPreprocessor(
-        user_input_dict={
-            'dataset_type': DatasetTypes.S3_BUCKET,
-            'index_fields': [],
-            'aws_region_name': 'test',
-        },
-    )
-
-    bucket_mock = Mock()
-    bucket_mock.download_file = download_mock
-    now.utils.get_bucket = MagicMock(return_value=bucket_mock)
-
-    res_index = preprocessor.preprocess(
-        da_index,
-        return_results=True,
-    )
-    assert len(res_index) == 1
-    for d in res_index:
-        c = d.chunks[0]
-        cc = c.chunks[0]
-        assert len(cc.blob) > 0
-        assert cc.uri == uri
-        assert c.uri == uri
-        assert len(c.chunks) == num_chunks
-        assert cc.tags[TAG_OCR_DETECTOR_TEXT_IN_DOC] == ocr_text
-
-
-def test_text():
+def test_text(mm_dataclass):
     da_search = DocumentArray(
         [
             Document(
-                chunks=[
-                    Document(
-                        text='This is the first Sentence. This is the second Sentence.',
-                        modality='text',
-                    )
-                ]
+                mm_dataclass(
+                    text='This is the first Sentence. This is the second Sentence.'
+                )
             )
         ]
     )

@@ -1,19 +1,7 @@
 import pathlib
 import time
 
-from docarray.typing import Image, Video
-
 from now.deployment.deployment import cmd
-from now.now_dataclasses import UserInput
-
-
-def check_if_ocr_needed(user_input: UserInput):
-    if any(
-        user_input.index_field_candidates_to_modalities[index_field] in [Image, Video]
-        for index_field in user_input.index_fields
-    ):
-        return True
-    return False
 
 
 def setup_elastic_service(

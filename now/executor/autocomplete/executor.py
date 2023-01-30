@@ -34,7 +34,7 @@ class NOWAutoCompleteExecutor2(Executor):
 
     def update_save_words(self, word):
         """
-        Method to update word count dictionary and dumps new dictionary
+        Method to update word count dictionary and dumps new dictionary.
         """
         if word in self.words:
             self.words[word]['count'] += 1

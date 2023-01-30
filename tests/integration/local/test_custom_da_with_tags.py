@@ -1,16 +1,13 @@
 import requests
-from tests.integration.bff.conftest import HOST, PORT, SEARCH_URL, get_flow, index_data
+from tests.integration.local.conftest import SEARCH_URL, get_flow, get_request_body
+from tests.integration.local.data import data_with_tags
 
-from now.admin.utils import get_default_request_body
-
-
-def get_request_body():
-    request_body = get_default_request_body(host=HOST, secured=False)
-    request_body['port'] = PORT
-    return request_body
+from now.constants import ACCESS_PATHS, Models
 
 
-def test_search_filters(setup_service_running, random_index_name, tmpdir):
+def test_search_filters(
+    data_with_tags, setup_service_running, random_index_name, tmpdir
+):
     f = get_flow(
         tmpdir=tmpdir,
         indexer_args={
@@ -18,11 +15,17 @@ def test_search_filters(setup_service_running, random_index_name, tmpdir):
             'user_input_dict': {
                 'filter_fields': ['color'],
             },
+            'document_mappings': [[Models.CLIP_MODEL, 512, ['title']]],
         },
     )
     with f:
-        index_data(f)
-        request_body = get_request_body()
+        f.index(
+            data_with_tags,
+            parameters={
+                'access_paths': ACCESS_PATHS,
+            },
+        )
+        request_body = get_request_body(secured=False)
         request_body['query'] = [{'name': 'text', 'value': 'test', 'modality': 'text'}]
         request_body['filters'] = {'color': 'Blue Color'}
         response = requests.post(

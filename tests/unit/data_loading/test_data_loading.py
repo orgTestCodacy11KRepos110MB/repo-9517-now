@@ -1,8 +1,10 @@
 """ This suite tests the data_loading.py module """
 import os
+import pathlib
 from typing import Tuple
 
 import pytest
+import requests
 from docarray import Document, DocumentArray, dataclass
 from docarray.typing import Image, Text
 from pytest_mock import MockerFixture
@@ -19,15 +21,18 @@ from now.data_loading.data_loading import (
     from_files_local,
     load_data,
 )
-from now.demo_data import DemoDatasetNames
+from now.demo_data import AVAILABLE_DATASETS, DemoDatasetNames
 from now.now_dataclasses import UserInput
 
 
 @pytest.fixture()
 def da() -> DocumentArray:
+    cur_dir = pathlib.Path(__file__).parent.resolve()
+
     @dataclass
     class MMDoc:
         description: Text = 'description'
+        image: Image = os.path.join(cur_dir, '../../resources/gif/folder1/file.gif')
 
     return DocumentArray(
         [Document(MMDoc(description='foo')), Document(MMDoc(description='bar'))]
@@ -67,25 +72,18 @@ def is_da_text_equal(da_a: DocumentArray, da_b: DocumentArray):
     return True
 
 
-def test_da_pull(da: DocumentArray):
-    user_input = UserInput()
-    user_input.dataset_type = DatasetTypes.DOCARRAY
-    user_input.dataset_name = 'secret-token'
-
-    loaded_da = load_data(user_input)
-
-    assert is_da_text_equal(da, loaded_da)
-
-
-def test_da_local_path(local_da: DocumentArray):
+def test_da_local_path(local_da: Tuple[str, DocumentArray]):
     path, da = local_da
     user_input = UserInput()
     user_input.dataset_type = DatasetTypes.PATH
     user_input.dataset_path = path
+    user_input.index_fields = ['description']
 
     loaded_da = load_data(user_input)
-
-    assert is_da_text_equal(da, loaded_da)
+    assert loaded_da[0].tags == {}
+    assert loaded_da[0].description.content == da[0].description.content
+    assert len(loaded_da) == 2
+    assert len(loaded_da[0].chunks) == 1
 
 
 def test_da_local_path_image_folder(image_resource_path: str):
@@ -114,11 +112,13 @@ def test_da_custom_ds(da: DocumentArray):
     user_input.dataset_type = DatasetTypes.DEMO
     user_input.dataset_name = DemoDatasetNames.DEEP_FASHION
     user_input.admin_name = 'team-now'
+    user_input.index_fields = ['description']
 
     loaded_da = load_data(user_input)
 
     assert len(loaded_da) > 0
     for doc in loaded_da:
+        assert doc.tags == {}
         assert doc.chunks
 
 
@@ -199,3 +199,25 @@ def get_data(gif_resource_path, files):
     return DocumentArray(
         Document(uri=os.path.join(gif_resource_path, file)) for file in files
     )
+
+
+@pytest.mark.parametrize(
+    'ds_name',
+    [
+        ds.name
+        for _, demo_datasets in AVAILABLE_DATASETS.items()
+        for ds in demo_datasets
+    ],
+)
+def test_dataset_is_available(
+    ds_name: str,
+):
+    token = os.environ['WOLF_TOKEN']
+    cookies = {'st': token}
+    json_data = {'name': ds_name}
+    response = requests.post(
+        'https://api.hubble.jina.ai/v2/rpc/docarray.getFirstDocuments',
+        cookies=cookies,
+        json=json_data,
+    )
+    assert response.json()['code'] == 200

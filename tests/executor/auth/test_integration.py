@@ -2,20 +2,29 @@ import json
 
 import pytest
 from docarray import Document
-from jina import Executor, Flow, requests
 
-from now.executor.abstract.auth.auth import get_auth_executor_class
-from now.executor.gateway import NOWGateway
+from now.executor.abstract.auth.auth import (
+    SecurityLevel,
+    get_auth_executor_class,
+    secure_request,
+)
 
 
 @pytest.fixture
-def auth_executor():
-    return get_auth_executor_class()
+def executor_class():
+    AuthExecutor = get_auth_executor_class()
+
+    class E(AuthExecutor):
+        @secure_request(level=SecurityLevel.USER, on='/index')
+        def index(self, *args, **kwargs):
+            print('do something')
+
+    return E
 
 
-def test_executor_persistence(auth_executor, tmpdir):
+def test_executor_persistence(executor_class, tmpdir):
     api_key = 'my_key'
-    e = auth_executor(api_keys=[api_key], metas={'workspace': tmpdir})
+    e = executor_class(api_keys=[api_key], metas={'workspace': tmpdir})
     e.update_user_emails(
         parameters={'api_key': api_key, 'user_emails': ['abc@test.ai']}
     )
@@ -26,91 +35,51 @@ def test_executor_persistence(auth_executor, tmpdir):
         json.load(fp)
 
 
-class SecondExecutor(Executor):
-    @requests
-    def do_something(self, *args, **kwargs):
-        print('do something')
+def test_authorization_success_api_key(executor_class, admin_email):
+    executor = executor_class(user_emails=['hello.ai'], api_keys=['valid_key'])
+    executor.index(docs=Document(text='abc'), parameters={'api_key': 'valid_key'})
 
 
-def test_authorization_success_api_key(auth_executor, admin_email):
-    with (
-        Flow()
-        .config_gateway(
-            uses=NOWGateway,
-            protocol=['grpc'],
-        )
-        .add(
-            uses=auth_executor,
-            uses_with={
-                'admin_emails': [admin_email],
-                'api_keys': ['valid_key'],
-            },
-        )
-        .add(uses=SecondExecutor)
-    ) as f:
-        f.index(inputs=Document(text='abc'), parameters={'api_key': 'valid_key'})
-
-
-def test_authorization_failed(auth_executor, admin_email):
-    with (
-        Flow()
-        .config_gateway(
-            uses=NOWGateway,
-            protocol=['grpc'],
-        )
-        .add(
-            uses=auth_executor,
-            uses_with={'admin_emails': [admin_email]},
-        )
-        .add(uses=SecondExecutor)
-    ) as f:
-        with pytest.raises(Exception):
-            f.index(
-                inputs=Document(text='abc'),
-                parameters={'jwt': {'token': 'invalid token of abc.def@jina.ai'}},
-            )
-
-
-def test_authorization_successful(auth_executor, admin_email, mock_hubble_admin_email):
-    with (
-        Flow()
-        .config_gateway(
-            uses=NOWGateway,
-            protocol=['grpc'],
-        )
-        .add(
-            uses=auth_executor,
-            uses_with={'admin_emails': [admin_email]},
-        )
-        .add(uses=SecondExecutor)
-    ) as f:
-        f.index(
-            inputs=Document(text='abc'),
-            parameters={
-                'jwt': {
-                    "token": 'yet:another:admin:token',
-                }
-            },
+def test_authorization_failed(executor_class, admin_email):
+    executor = executor_class(user_emails=['hello.ai'])
+    with pytest.raises(Exception):
+        executor.index(
+            docs=Document(text='abc'),
+            parameters={'jwt': {'token': 'invalid token of abc.def@jina.ai'}},
         )
 
 
-def test_authorization_success_domain_users(
-    auth_executor, mock_hubble_domain_user_email
+def test_authorization_successful(executor_class, admin_email, mock_hubble_admin_email):
+    executor = executor_class(user_emails=['hello.ai'])
+    executor.index(
+        docs=Document(text='abc'),
+        parameters={
+            'jwt': {
+                "token": 'yet:another:admin:token',
+            }
+        },
+    )
+
+
+def test_authorization_success_jina_users(executor_class, mock_hubble_user_email):
+    executor = executor_class(user_emails=['hello.ai'])
+    executor.index(
+        docs=Document(text='abc'),
+        parameters={
+            'jwt': {
+                "token": 'another:jina:ai:user:token',
+            }
+        },
+    )
+
+
+def test_authorization_failed_domain_users(
+    executor_class, mock_hubble_domain_user_email
 ):
-    with (
-        Flow()
-        .config_gateway(
-            uses=NOWGateway,
-            protocol=['grpc'],
-        )
-        .add(
-            uses=auth_executor,
-            uses_with={'user_emails': ['test.ai']},
-        )
-        .add(uses=SecondExecutor)
-    ) as f:
-        f.index(
-            inputs=Document(text='abc'),
+    executor = executor_class(user_emails=['hello.ai'])
+    with pytest.raises(Exception):
+        executor.index(
+            docs=Document(text='abc'),
             parameters={
                 'jwt': {
                     "token": 'another:test:ai:user:token',
@@ -119,69 +88,9 @@ def test_authorization_success_domain_users(
         )
 
 
-def test_authorization_success_jina_users(auth_executor, mock_hubble_user_email):
-    with (
-        Flow()
-        .config_gateway(
-            uses=NOWGateway,
-            protocol=['grpc'],
+def test_authorization_failed_api_key(executor_class, admin_email):
+    executor = executor_class(user_emails=['hello.ai'])
+    with pytest.raises(Exception):
+        executor.index(
+            docs=Document(text='abc'), parameters={'api_key': 'invalid api_key'}
         )
-        .add(
-            uses=auth_executor,
-            uses_with={'admin_emails': ['test.ai']},
-        )
-        .add(uses=SecondExecutor)
-    ) as f:
-        f.index(
-            inputs=Document(text='abc'),
-            parameters={
-                'jwt': {
-                    "token": 'another:jina:ai:user:token',
-                }
-            },
-        )
-
-
-def test_authorization_failed_domain_users(
-    auth_executor, mock_hubble_domain_user_email
-):
-    with (
-        Flow()
-        .config_gateway(
-            uses=NOWGateway,
-            protocol=['grpc'],
-        )
-        .add(
-            uses=auth_executor,
-            uses_with={'user_emails': ['hello.ai']},
-        )
-        .add(uses=SecondExecutor)
-    ) as f:
-        with pytest.raises(Exception):
-            f.index(
-                inputs=Document(text='abc'),
-                parameters={
-                    'jwt': {
-                        "token": 'another:test:ai:user:token',
-                    }
-                },
-            )
-
-
-def test_authorization_failed_api_key(auth_executor, admin_email):
-    with (
-        Flow()
-        .config_gateway(
-            uses=NOWGateway,
-            protocol=['grpc'],
-        )
-        .add(
-            uses=auth_executor,
-            uses_with={'admin_emails': [admin_email]},
-        )
-        .add(uses=SecondExecutor)
-    ) as f:
-        with pytest.raises(Exception):
-            f.index(
-                inputs=Document(text='abc'), parameters={'api_key': 'invalid api_key'}
-            )
