@@ -161,6 +161,9 @@ class JinaNOWApp:
             flow_yaml_content['gateway'][
                 'uses'
             ] = f'jinahub+docker://2m00g87k/{NOW_GATEWAY_VERSION}'
+            flow_yaml_content['gateway']['uses_with'] = {
+                'secured': user_input.secured,
+            }
             # Call the executor stubs function to get the executors for the flow
             flow_yaml_content['executors'] = self.get_executor_stubs(
                 dataset, user_input
