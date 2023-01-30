@@ -95,7 +95,7 @@ NOW asks for the URI to the S3 bucket, as well as the credentials and region the
 
 A final step in loading your data is to choose the fields of your data that you would like to use for search and filter
 respectively. You can choose from the fields that are available in your data. For more information on this, see the
-[guide to loading your data](docs/user-guides/input_format.md).
+[guide to loading your data](https://now.jina.ai/user-guides/input_format/).
 
 
 **2.** Follow the links. After NOW finishes processing, you'll see two links:
