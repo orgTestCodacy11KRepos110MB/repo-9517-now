@@ -74,12 +74,6 @@ class NOWGateway(CompositeGateway):
 
         self.setup_nginx()
 
-    async def setup_server(self):
-        await super().setup_server()
-
-    async def run_server(self):
-        await super().run_server()
-
     async def shutdown(self):
         await super().shutdown()
         self.shutdown_nginx()
