@@ -9,6 +9,7 @@ def test_autocomplete(tmpdir, mm_dataclass):
     with Flow().config_gateway(
         uses=NOWGateway,
         protocol=['http'],
+        port=[8081],
     ).add(uses=NOWAutoCompleteExecutor2, workspace=tmpdir) as f:
         f.post(
             on='/search',

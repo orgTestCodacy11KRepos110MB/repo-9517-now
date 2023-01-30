@@ -315,7 +315,11 @@ class TestElasticIndexer:
         self, metas, documents, setup_service_running, query, embedding, res_ids
     ):
         documents = DocumentArray([Document(chunks=[doc]) for doc in documents])
-        with Flow().config_gateway(uses=NOWGateway, protocol=['grpc'],).add(
+        with Flow().config_gateway(
+            uses=NOWGateway,
+            protocol=['http'],
+            port=[8081],
+        ).add(
             uses=NOWElasticIndexer,
             uses_with={
                 "dim": len(embedding),
