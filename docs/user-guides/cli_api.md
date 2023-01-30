@@ -24,7 +24,7 @@ provided to you upon deployment of the app.
 ```python
 from jina import Client
 client = Client(
-    host='grpcs://<add your gateway here>'
+    host='grpcs://now-example-bird-species.dev.jina.ai&data=bird-species' # add your own gateway here
 )
 response = client.post(on='/ping')
 assert response.status_code == 200 # successful response!
@@ -49,7 +49,7 @@ class Query:
 query_doc = Document(Query(text='cat', image='<example-image-uri>.png'))
 
 client = Client(
-    host='grpcs://<add your gateway here>'
+    host='grpcs://now-example-bird-species.dev.jina.ai&data=bird-species' # add your own gateway here
 )
 response = client.search(
         query_doc,
