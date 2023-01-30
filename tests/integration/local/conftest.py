@@ -34,7 +34,11 @@ def get_flow(preprocessor_args=None, indexer_args=None, tmpdir=None):
             uses=NOWGateway,
             protocol=['http'],
             port=[8081],
-            uses_with={'secured': secured},
+            uses_with={
+                'user_input_dict': {
+                    'secured': secured,
+                },
+            },
             env={'JINA_LOG_LEVEL': 'DEBUG'},
         )
         .add(

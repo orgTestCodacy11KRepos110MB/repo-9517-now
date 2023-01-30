@@ -1,5 +1,6 @@
 import os
 from time import sleep
+from typing import Dict
 
 import streamlit.web.bootstrap
 from docarray import Document
@@ -12,6 +13,7 @@ from streamlit.web.server import Server as StreamlitServer
 from now.constants import CG_BFF_PORT
 from now.deployment.deployment import cmd
 from now.executor.gateway.bff.app.app import application
+from now.now_dataclasses import UserInput
 
 cur_dir = os.path.dirname(__file__)
 
@@ -62,14 +64,24 @@ class BFFGateway(FastAPIBaseGateway):
 
 
 class NOWGateway(CompositeGateway):
-    def __init__(self, secured: bool, **kwargs):
+    def __init__(self, user_input_dict: Dict = {}, **kwargs):
         # need to update port ot 8082, as nginx will listen on 8081
         kwargs['runtime_args']['port'] = [8082]
         super().__init__(**kwargs)
 
+        self.user_input = UserInput()
+        for attr_name, prev_value in self.user_input.__dict__.items():
+            setattr(
+                self.user_input,
+                attr_name,
+                user_input_dict.get(attr_name, prev_value),
+            )
+
         # note order is important
         self._add_gateway(BFFGateway, CG_BFF_PORT, **kwargs)
-        self._add_gateway(PlaygroundGateway, 8501, **{'secured': secured, **kwargs})
+        self._add_gateway(
+            PlaygroundGateway, 8501, **{'secured': self.user_input.secured, **kwargs}
+        )
         # self._add_gateway(PlaygroundGateway, 8501, secured,  **kwargs)
 
         self.setup_nginx()
@@ -140,7 +152,6 @@ if __name__ == '__main__':
             protocol=['http'],
             port=[8081],
             env={'JINA_LOG_LEVEL': 'DEBUG'},
-            uses_with={'secured': False},
         )
         # .add(
         #     uses=DummyEncoder,

@@ -125,6 +125,14 @@ class JinaNOWApp:
         :param user_input: user configuration based on the given options
         :return: dict used to replace variables in flow yaml and to clean up resources after the flow is terminated
         """
+        user_input_dict = deepcopy(user_input.__dict__)
+        user_input_dict.pop('app_instance', None)
+        user_input_dict['index_field_candidates_to_modalities'] = {
+            field: docarray_typing_to_modality_string(modality)
+            for field, modality in user_input_dict[
+                'index_field_candidates_to_modalities'
+            ].items()
+        }
         # Get the common env variables
         common_env_dict = {
             'JINA_VERSION': jina_version,
@@ -162,21 +170,13 @@ class JinaNOWApp:
                 'uses'
             ] = f'jinahub+docker://2m00g87k/{NOW_GATEWAY_VERSION}'
             flow_yaml_content['gateway']['uses_with'] = {
-                'secured': user_input.secured == True,
+                'user_input_dict': user_input_dict
             }
             # Call the executor stubs function to get the executors for the flow
             flow_yaml_content['executors'] = self.get_executor_stubs(
                 dataset, user_input
             )
             # append user_input and api_keys to all executors except the remote executors
-            user_input_dict = deepcopy(user_input.__dict__)
-            user_input_dict.pop('app_instance', None)
-            user_input_dict['index_field_candidates_to_modalities'] = {
-                field: docarray_typing_to_modality_string(modality)
-                for field, modality in user_input_dict[
-                    'index_field_candidates_to_modalities'
-                ].items()
-            }
             for executor in flow_yaml_content['executors']:
                 if not executor.get('external', False):
                     if not executor.get('uses_with', None):

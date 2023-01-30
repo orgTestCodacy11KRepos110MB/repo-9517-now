@@ -74,7 +74,7 @@ def start_now(**kwargs):
         box=box.SIMPLE,
         highlight=True,
     )
-    my_table.add_row('Api docs', bff_url)
+    my_table.add_row('API docs', bff_url)
     if user_input.secured and user_input.api_key:
         my_table.add_row('API Key', user_input.api_key)
     my_table.add_row('Playground', playground_url)

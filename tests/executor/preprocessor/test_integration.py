@@ -27,7 +27,6 @@ def test_search_app(resources_folder_path, endpoint, tmpdir, mm_dataclass):
         uses=NOWGateway,
         protocol=['http'],
         port=8081,
-        uses_with={'secured': False},
         env={'JINA_LOG_LEVEL': 'DEBUG'},
     ).add(uses=NOWPreprocessor, uses_metas=metas) as f:
         result = f.post(

@@ -319,7 +319,6 @@ class TestElasticIndexer:
             uses=NOWGateway,
             protocol=['http'],
             port=[8081],
-            uses_with={'secured': False},
             env={'JINA_LOG_LEVEL': 'DEBUG'},
         ).add(
             uses=NOWElasticIndexer,
