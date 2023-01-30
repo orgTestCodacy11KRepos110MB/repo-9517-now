@@ -52,8 +52,7 @@ def test_image_search_calls_flow(
 
     assert response.status_code == status.HTTP_200_OK
     results = DocumentArray.from_json(response.content)
-    # the mock writes the call args into the response tags
-    assert results[0].tags['url'] == '/search'
+    # the mock writes the call args into the response tags, not url isn't written anymore by changes in mock
     assert results[0].tags['parameters']['limit'] == 10
 
 
