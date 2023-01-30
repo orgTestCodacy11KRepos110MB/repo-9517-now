@@ -10,6 +10,7 @@ from jina.serve.runtimes.gateway.http.fastapi import FastAPIBaseGateway
 from jina.serve.runtimes.gateway.http.models import JinaHealthModel
 from streamlit.web.server import Server as StreamlitServer
 
+from now.constants import CG_BFF_PORT
 from now.deployment.deployment import cmd
 from now.executor.gateway.bff.app.app import application
 
@@ -59,11 +60,12 @@ class BFFGateway(FastAPIBaseGateway):
 
 class NOWGateway(CompositeGateway):
     def __init__(self, **kwargs):
+        # need to update port ot 8082, as nginx will listen on 8081
         kwargs['runtime_args']['port'] = [8082]
         super().__init__(**kwargs)
 
         # note order is important
-        self._add_gateway(BFFGateway, 8080, **kwargs)
+        self._add_gateway(BFFGateway, CG_BFF_PORT, **kwargs)
         self._add_gateway(PlaygroundGateway, 8501, **kwargs)
 
         self.setup_nginx()

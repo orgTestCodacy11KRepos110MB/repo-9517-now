@@ -121,7 +121,7 @@ def multimodal_search(
     endpoint='search',
 ):
     params = get_query_params()
-    URL_HOST = f"http://localhost:{CG_BFF_PORT}/api/v1/search-app/{endpoint}"
+    url_host = f"http://localhost:{CG_BFF_PORT}/api/v1/search-app/{endpoint}"
 
     updated_dict = {}
     if filter_dict:
@@ -144,4 +144,4 @@ def multimodal_search(
         data['jwt'] = jwt
     if params.port:
         data['port'] = params.port
-    return call_flow(URL_HOST, data, domain, endpoint)
+    return call_flow(url_host, data, endpoint)
