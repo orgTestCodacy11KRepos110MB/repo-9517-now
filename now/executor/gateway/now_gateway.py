@@ -148,12 +148,16 @@ if __name__ == '__main__':
         #     uses=DummyEncoder,
         #     env={'JINA_LOG_LEVEL': 'DEBUG'},
         # )
+        # .add(
+        #     name='autocomplete',
+        #     uses='jinahub+docker://w5w084h7/0.0.9-fix-filter-index-fields-20',
+        #     env={'JINA_LOG_LEVEL': 'DEBUG'},
+        # )
         .add(
-            name='autocomplete',
-            uses='jinahub+docker://w5w084h7/0.0.9-fix-filter-index-fields-20',
+            name='preprocessor',
+            uses='jinahub+docker://2hgojz3z/0.0.121-refactor-custom-gateway-47',
             env={'JINA_LOG_LEVEL': 'DEBUG'},
         )
-        # .add(uses=NOWPreprocessor, name='preprocessor', env={'JINA_LOG_LEVEL': 'DEBUG'})
         # .add(
         #     host=EXTERNAL_CLIP_HOST,
         #     port=443,

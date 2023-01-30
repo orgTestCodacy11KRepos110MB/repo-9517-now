@@ -397,7 +397,7 @@ def customize_semantic_scores():
 
 
 def render_mm_query(query, modality):
-    if st.button("+", key=f'{modality}'):
+    if st.button("+", key=f'add_{modality}_field'):
         st.session_state[f"len_{modality}_choices"] += 1
     if modality == 'text':
         for field_number in range(st.session_state[f"len_{modality}_choices"]):
@@ -435,7 +435,7 @@ def render_mm_query(query, modality):
     if st.session_state[f"len_{modality}_choices"] >= 1:
         st.button(
             "-",
-            key=f'{modality}',
+            key=f'remove_{modality}_field',
             on_click=decrement_inputs,
             kwargs=dict(modality=modality),
         )
