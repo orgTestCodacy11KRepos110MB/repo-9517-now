@@ -8,8 +8,8 @@ jcloud:
   labels:
     team: now
 gateway:
-  protocol: [http, http, http]
-  port: [8081, 8080, 8501]
+  protocol: [http]
+  port: [8081]
   monitoring: true
   cors: true
   prefetch: 10
