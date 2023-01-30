@@ -19,10 +19,11 @@ def test_search_image(resources_folder_path: str):
 
 
 def assert_deployment_response(response):
-    assert response['bff'] == 'http://localhost:8080/api/v1/search-app/docs'
-    assert response['playground'].startswith('http://localhost/')
-    assert response['host'].startswith('https://')
-    assert response['host'].endswith('.wolf.jina.ai')
+    host = response['host']
+    assert host.startswith('https://')
+    assert host.endswith('.wolf.jina.ai')
+    assert response['bff'] == f'{host}/api/v1/search-app/docs'
+    assert response['playground'] == f'{host}/playground'
 
 
 def assert_deployment_queries(
@@ -145,7 +146,7 @@ def assert_search_custom_s3(host, create_temp_link=False):
     }
 
     response = requests.post(
-        f'http://localhost:8080/api/v1/search-app/search',
+        f'{host}/api/v1/search-app/search',
         json=request_body,
     )
 
