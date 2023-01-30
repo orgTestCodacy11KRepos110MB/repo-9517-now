@@ -6,15 +6,13 @@ from now.executor.gateway import NOWGateway
 from now.executor.indexer.elastic import NOWElasticIndexer
 from now.executor.preprocessor import NOWPreprocessor
 
-BASE_URL = 'http://localhost:8080/api/v1'
+BASE_URL = 'http://localhost:8081/api/v1'
 SEARCH_URL = f'{BASE_URL}/search-app/search'
-HOST = 'grpc://0.0.0.0'
-PORT = 9089
+HOST = 'http://0.0.0.0'
 
 
 def get_request_body(secured):
     request_body = get_default_request_body(host=HOST, secured=secured)
-    request_body['port'] = PORT
     return request_body
 
 
