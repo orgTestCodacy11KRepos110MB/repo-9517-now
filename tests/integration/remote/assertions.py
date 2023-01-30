@@ -31,8 +31,8 @@ def assert_deployment_queries(
     search_modality,
     dataset=None,
 ):
-    url = f'http://localhost:8080/api/v1'
     host = response.get('host')
+    url = f'{host}/api/v1'
     # normal case
     request_body = get_search_request_body(
         kwargs=kwargs,

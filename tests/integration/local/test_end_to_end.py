@@ -4,7 +4,6 @@ from docarray.typing import Image, Text
 from tests.integration.local.conftest import SEARCH_URL, get_flow, get_request_body
 
 from now.constants import ACCESS_PATHS, Models
-from tests.integration.local.data import artworks_data, elastic_data, pop_lyrics_data
 
 
 @pytest.mark.parametrize(
@@ -15,9 +14,7 @@ from tests.integration.local.data import artworks_data, elastic_data, pop_lyrics
         'elastic_data',
     ],
 )
-def test_end_to_end(
-    data, start_bff, setup_service_running, random_index_name, request, tmpdir
-):
+def test_end_to_end(data, setup_service_running, random_index_name, request, tmpdir):
     docs, user_input = request.getfixturevalue(data)
     fields_for_mapping = (
         [

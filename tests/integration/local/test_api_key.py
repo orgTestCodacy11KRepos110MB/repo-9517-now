@@ -16,9 +16,7 @@ update_api_keys_url = f'{BASE_URL}/admin/updateApiKeys'
 update_emails_url = f'{BASE_URL}/admin/updateUserEmails'
 
 
-def test_add_key(
-    simple_data, start_bff, setup_service_running, random_index_name, tmpdir
-):
+def test_add_key(simple_data, setup_service_running, random_index_name, tmpdir):
     client = hubble.Client(
         token=get_request_body(secured=True)['jwt']['token'],
         max_retries=None,

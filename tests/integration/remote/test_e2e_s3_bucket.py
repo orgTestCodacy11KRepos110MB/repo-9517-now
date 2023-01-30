@@ -16,7 +16,6 @@ from now.constants import DatasetTypes, Models
 @pytest.mark.parametrize('dataset', ['custom_s3_bucket'])
 @pytest.mark.parametrize('query_fields', ['image'])
 def test_backend_custom_data(
-    start_bff,
     dataset: str,
     query_fields: str,
     cleanup,

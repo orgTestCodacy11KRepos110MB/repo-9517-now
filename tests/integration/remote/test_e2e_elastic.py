@@ -17,7 +17,6 @@ from now.constants import DatasetTypes, Models
 @pytest.mark.timeout(60 * 10)
 def test_end_to_end(
     cleanup,
-    start_bff,
     setup_online_shop_db,
     es_connection_params,
 ):
@@ -57,5 +56,5 @@ def test_end_to_end(
         host=host,
         search_modality='text',
     )
-    suggest_url = f'http://localhost:8080/api/v1/search-app/suggestion'
+    suggest_url = f'{response["host"]}/api/v1/search-app/suggestion'
     assert_suggest(suggest_url, request_body)
