@@ -21,7 +21,7 @@ def test_search_image(resources_folder_path: str):
 def assert_deployment_response(response):
     assert response['bff'] == 'http://localhost:8080/api/v1/search-app/docs'
     assert response['playground'].startswith('http://localhost/')
-    assert response['host'].startswith('grpcs://')
+    assert response['host'].startswith('https://')
     assert response['host'].endswith('.wolf.jina.ai')
 
 
