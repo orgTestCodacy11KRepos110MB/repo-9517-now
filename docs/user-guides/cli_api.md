@@ -13,7 +13,7 @@ jina now start --dataset-type "DocumentArray name" --dataset-name "my-documentar
 When you have successfully deployed your application, you can send requests to the deployment using the Jina client. To do this,
 use the `gateway` that you received upon deploying your app. It will look similar to this:
 
-<img src="https://github.com/jina-ai/now/blob/docs-api-update/docs/_static/deployment_print.png?raw=true" alt="NOW Deployment Print" width="500px">
+<img src="/_static/deployment_print.png" alt="NOW Deployment Print" width="500px">
 
 
 ### Check Liveness
@@ -65,7 +65,7 @@ Similarly, you can access the other endpoints such as `/suggestion` and `/list`.
 If you prefer making post requests directly to the API, you can take a look at the documentation
 link supplied to you when deploying your application:
 
-<img src="https://github.com/jina-ai/now/blob/docs-api-update/docs/_static/api_docs.png?raw=true" alt="API usage" width="700px">
+<img src="/_static/api_docs.png?raw=true" alt="API usage" width="700px">
 
 Requests should be made to 'https://nowrun.jina.ai/api/v1/search-app/', which hosts the backend for frontend (BFF),
 exposing all important endpoint that you can integrate into your frontend.
