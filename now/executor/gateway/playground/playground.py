@@ -106,7 +106,7 @@ def deploy_streamlit():
 
         setup_design()
 
-        client = Client(host='localhost', port=8081, protocol='http')
+        client = Client(host='localhost', port=8082, protocol='http')
 
         if params.host:
             if st.session_state.filters == 'notags':
