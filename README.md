@@ -26,7 +26,7 @@ NOW gives the world access to multimodal neural search with just one command.
 - 🌈 **Quality**: You provide the labels, NOW fine-tunes the model.
 - ✨ **Nocode**: Non-technical people can deploy with ease.
 
-Read how [Jina NOW is production ready](https://now.jina.ai/user-guides/production/).
+Read how [Jina NOW is production ready](docs/user-guides/production.md).
 
 ### Install
 
@@ -95,7 +95,7 @@ NOW asks for the URI to the S3 bucket, as well as the credentials and region the
 
 A final step in loading your data is to choose the fields of your data that you would like to use for search and filter
 respectively. You can choose from the fields that are available in your data. For more information on this, see the
-[guide to loading your data](https://now.jina.ai/user-guides/input_format/).
+[guide to loading your data](docs/user-guides/input_format.md).
 
 
 **2.** Follow the links. After NOW finishes processing, you'll see two links:
@@ -121,7 +121,7 @@ Example of the Swagger UI.
 
 <img width="350" alt="Screenshot 2022-05-26 at 16 36 06" src="https://user-images.githubusercontent.com/11627845/170511580-230d1e41-5e14-4623-adb6-3d4b2d400dc9.png">
 
-[More information on using Jina NOW CLI and API](https://now.jina.ai/user-guides/cli_api/)
+[More information on using Jina NOW CLI and API](docs/user-guides/cli_api.md)
 
 ## Supported modalities (more coming soon)
 

@@ -156,5 +156,4 @@ filtering.
 ## Next steps
 
 Now that you have selected your input format and the fields you want to search and filter on, you can move on to the next step,
-where you will be asked to choose a name for your search app, where to make the deployment (📍local or on ⛅️ Jina Cloud),
-and whether you want to secure your application. 
+where you will be asked to choose a name for your search app and whether you want to secure your application. 
