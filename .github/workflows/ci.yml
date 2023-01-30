@@ -141,7 +141,7 @@ jobs:
     needs: [ lint-flake-8, check-black, commit-lint ]
     steps:
       - uses: actions/checkout@v2
-      - uses: ./.github/actions/push-gateway
+      - uses: ./.github/actions/push-executor
         with:
           executor_version_name: NOW_GATEWAY_VERSION
           executor_name: NOWGateway
