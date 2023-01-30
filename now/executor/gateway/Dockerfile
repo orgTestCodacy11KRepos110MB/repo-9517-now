@@ -23,6 +23,9 @@ WORKDIR /workdir
 COPY nginx.conf nginx.conf
 COPY nginx.conf /etc/nginx/nginx.conf
 
+# needed to copy custom streamlit index.html file to add tracking
+COPY playground/custom_streamlit_index.html /usr/local/lib/python3.9/site-packages/streamlit/static/index.html
+
 
 #CMD ["nginx", "-g", "daemon off &&"]
 

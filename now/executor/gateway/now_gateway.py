@@ -78,9 +78,9 @@ class NOWGateway(CompositeGateway):
 
     async def shutdown(self):
         await super().shutdown()
+        self.shutdown_nginx()
 
     def setup_nginx(self):
-
         output, error = cmd(
             [
                 'nginx',
@@ -88,18 +88,16 @@ class NOWGateway(CompositeGateway):
                 os.path.join(cur_dir, '', 'nginx.conf'),
             ]
         )
-        print(f'nginx output: {output}')
-        print(f'nginx error: {error}')
-
-        # subprocess.Popen(
-        #     [
-        #         'nginx',
-        #         '-c',
-        #         os.path.join(cur_dir, '', 'nginx.conf'),
-        #     ]
-        # )
         sleep(10)
         self.logger.info('Nginx started')
+        self.logger.info(f'nginx output: {output}')
+        self.logger.info(f'nginx error: {error}')
+
+    def shutdown_nginx(self):
+        output, error = cmd(['nginx', '-s', 'stop'])
+        self.logger.info('Nginx stopped')
+        self.logger.info(f'nginx output: {output}')
+        self.logger.info(f'nginx error: {error}')
 
     def _add_gateway(self, gateway_cls, port, protocol='http', **kwargs):
         # ignore metrics_registry since it is not copyable
