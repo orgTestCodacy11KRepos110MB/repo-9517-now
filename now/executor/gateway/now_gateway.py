@@ -107,6 +107,7 @@ class NOWGateway(CompositeGateway):
         # need to use sudo for tests which use the python class directly
         if 'NOW_CI' in os.environ:
             command.insert(0, 'sudo')
+        print(f'Running command: {command}')
         output, error = cmd(command)
         sleep(10)
         self.logger.info('Nginx started')
@@ -118,6 +119,7 @@ class NOWGateway(CompositeGateway):
         # need to use sudo for tests which use the python class directly
         if 'NOW_CI' in os.environ:
             command.insert(0, 'sudo')
+        print(f'Running command: {command}')
         output, error = cmd(command)
         sleep(10)
         self.logger.info('Nginx stopped')

@@ -4,10 +4,10 @@ from docarray.typing import Image, Text, Video
 
 from now.utils import BetterEnum
 
-NOW_GATEWAY_VERSION = '0.0.1-refactor-custom-gateway-69'
-NOW_PREPROCESSOR_VERSION = '0.0.122-refactor-custom-gateway-69'
-NOW_ELASTIC_INDEXER_VERSION = '0.0.144-refactor-custom-gateway-69'
-NOW_AUTOCOMPLETE_VERSION = '0.0.10-refactor-custom-gateway-69'
+NOW_GATEWAY_VERSION = '0.0.1-refactor-custom-gateway-70'
+NOW_PREPROCESSOR_VERSION = '0.0.122-refactor-custom-gateway-70'
+NOW_ELASTIC_INDEXER_VERSION = '0.0.144-refactor-custom-gateway-70'
+NOW_AUTOCOMPLETE_VERSION = '0.0.10-refactor-custom-gateway-70'
 
 
 class Apps(BetterEnum):
