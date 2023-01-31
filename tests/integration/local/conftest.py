@@ -5,7 +5,7 @@ import pytest
 from jina import Flow
 
 from now.admin.utils import get_default_request_body
-from now.constants import EXTERNAL_CLIP_HOST
+from now.constants import EXTERNAL_CLIP_HOST, Models
 from now.executor.gateway import NOWGateway
 from now.executor.indexer.elastic import NOWElasticIndexer
 from now.executor.preprocessor import NOWPreprocessor
@@ -22,14 +22,37 @@ def get_request_body(secured):
 
 @pytest.fixture
 def get_flow(request, random_index_name, tmpdir):
-    preprocessor_args, indexer_args = request.param
+    params = request.param
+    if isinstance(params, tuple):
+        preprocessor_args, indexer_args = params
+    elif isinstance(params, str):
+        docs, user_input = request.getfixturevalue(params)
+        fields_for_mapping = (
+            [
+                user_input.field_names_to_dataclass_fields[field_name]
+                for field_name in user_input.index_fields
+            ]
+            if user_input.field_names_to_dataclass_fields
+            else user_input.index_fields
+        )
+        preprocessor_args = {}
+        indexer_args = {
+            'user_input_dict': {
+                'filter_fields': user_input.filter_fields,
+            },
+            'document_mappings': [[Models.CLIP_MODEL, 512, fields_for_mapping]],
+        }
+
     indexer_args['index_name'] = random_index_name
     event = multiprocessing.Event()
     flow = FlowThread(event, preprocessor_args, indexer_args, tmpdir)
     flow.start()
     while not flow.is_flow_ready():
         sleep(1)
-    yield
+    if isinstance(params, tuple):
+        yield
+    elif isinstance(params, str):
+        yield docs, user_input
     event.set()
     sleep(1)
     flow.terminate()
