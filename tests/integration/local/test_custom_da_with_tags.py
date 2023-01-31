@@ -6,7 +6,6 @@ from tests.integration.local.conftest import (  # noqa
     get_flow,
     get_request_body,
 )
-from tests.integration.local.data import data_with_tags  # noqa
 
 from now.constants import ACCESS_PATHS, Models
 
