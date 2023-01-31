@@ -1,22 +1,15 @@
 from __future__ import annotations, print_function, unicode_literals
 
-import base64
-import json
 import os
 import shutil
 import signal
 import sys
-import tempfile
 from collections.abc import MutableMapping
-from concurrent.futures import ThreadPoolExecutor
-from os.path import expanduser as user
 from typing import Dict, List, Optional, TypeVar, Union
 
-import boto3
 import docarray
 import hubble
 import yaml
-from docarray import Document, DocumentArray
 from jina.jaml import JAML
 from pyfiglet import Figlet
 
@@ -63,11 +56,6 @@ def my_handler(signum, frame, spinner):
         sys.stdout.write("Program terminated!\n")
     spinner.stop()
     exit(0)
-
-
-def flow_definition(dirpath) -> Dict:
-    with open(dirpath) as f:
-        return yaml.safe_load(f.read())
 
 
 class BetterEnum:
@@ -190,93 +178,6 @@ def prompt_value(
     return maybe_prompt_user(qs, name, **kwargs)
 
 
-def get_local_path(tmpdir, path_s3):
-    # todo check if this method of creatign the path is creating too much overhead
-    # also, the number of files is growing and will never be cleaned up
-    return os.path.join(
-        str(tmpdir),
-        base64.b64encode(bytes(path_s3, "utf-8")).decode("utf-8")
-        + f'.{path_s3.split(".")[-1] if "." in path_s3 else ""}',  # preserve file ending
-    )
-
-
-def download_from_bucket(tmpdir, uri, bucket):
-    path_s3 = '/'.join(uri.split('/')[3:])
-    path_local = get_local_path(tmpdir, path_s3)
-    bucket.download_file(
-        path_s3,
-        path_local,
-    )
-    return path_local
-
-
-def convert_fn(
-    d: Document, tmpdir, aws_access_key_id, aws_secret_access_key, aws_region_name
-) -> Document:
-    """Downloads files and tags from S3 bucket and updates the content uri and the tags uri to the local path"""
-
-    bucket = get_bucket(
-        uri=d.uri,
-        aws_access_key_id=aws_access_key_id,
-        aws_secret_access_key=aws_secret_access_key,
-        region_name=aws_region_name,
-    )
-    d.tags['uri'] = d.uri
-
-    d.uri = download_from_bucket(tmpdir, d.uri, bucket)
-    if d.uri.endswith('.json'):
-        d.load_uri_to_text()
-        json_dict = json.loads(d.text)
-        field_name = d._metadata['field_name']
-        field_value = get_dict_value_for_flattened_key(
-            json_dict, field_name.split('__')
-        )
-        d.text = field_value
-        d.uri = ''
-    return d
-
-
-def get_bucket(uri, aws_access_key_id, aws_secret_access_key, region_name):
-    session = boto3.session.Session(
-        aws_access_key_id=aws_access_key_id,
-        aws_secret_access_key=aws_secret_access_key,
-        region_name=region_name,
-    )
-    bucket = session.resource('s3').Bucket(uri.split('/')[2])
-    return bucket
-
-
-def maybe_download_from_s3(
-    docs: DocumentArray, tmpdir: tempfile.TemporaryDirectory, user_input, max_workers
-):
-    """Downloads file to local temporary dictionary, saves S3 URI to `tags['uri']` and modifies `uri` attribute of
-    document to local path in-place.
-
-    :param doc: document containing URI pointing to the location on S3 bucket
-    :param tmpdir: temporary directory in which files will be saved
-    :param user_input: User iput which contain aws credentials
-    :param max_workers: number of threads to create in the threadpool executor to make execution faster
-    """
-
-    flat_docs = docs['@c']
-    filtered_docs = [c for c in flat_docs if c.uri.startswith('s3://')]
-
-    with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        futures = []
-        for c in filtered_docs:
-            f = executor.submit(
-                convert_fn,
-                c,
-                tmpdir,
-                user_input.aws_access_key_id,
-                user_input.aws_secret_access_key,
-                user_input.aws_region_name,
-            )
-            futures.append(f)
-        for f in futures:
-            f.result()
-
-
 def flatten_dict(d, parent_key='', sep='__'):
     """
     This function converts a nested dictionary into a dictionary of attirbutes using '__' as a separator.
@@ -294,21 +195,6 @@ def flatten_dict(d, parent_key='', sep='__'):
     return dict(items)
 
 
-def get_dict_value_for_flattened_key(d, keys):
-    if len(keys) == 0:
-        return d
-    else:
-        return get_dict_value_for_flattened_key(d[keys[0]], keys[1:])
-
-
-def _get_context_names(contexts, active_context=None):
-    names = [c for c in contexts] if contexts is not None else []
-    if active_context is not None:
-        names.remove(active_context)
-        names = [active_context] + names
-    return names
-
-
 def get_flow_id(host):
     return host.split('.wolf.jina.ai')[0].split('grpcs://')[-1]
 
@@ -316,20 +202,6 @@ def get_flow_id(host):
 class Dumper(yaml.Dumper):
     def increase_indent(self, flow=False, *args, **kwargs):
         return super().increase_indent(flow=flow, indentless=False)
-
-
-def get_email():
-    try:
-        with open(user('~/.jina/config.json')) as fp:
-            config_val = json.load(fp)
-            user_token = config_val['auth_token']
-            client = hubble.Client(token=user_token, max_retries=None, jsonify=True)
-            response = client.get_user_info()
-        if 'email' in response['data']:
-            return response['data']['email']
-        return ''
-    except FileNotFoundError:
-        return ''
 
 
 def docarray_typing_to_modality_string(T: TypeVar) -> str:

@@ -18,7 +18,7 @@ def test_text(mm_dataclass):
         [
             Document(
                 mm_dataclass(
-                    text='This is the first Sentence. This is the second Sentence.'
+                    text_field='This is the first Sentence. This is the second Sentence.'
                 )
             )
         ]

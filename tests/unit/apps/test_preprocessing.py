@@ -13,7 +13,7 @@ def mm_text_data(mm_dataclass):
 
     return DocumentArray(
         [
-            Document(mm_dataclass(text='test')),
+            Document(mm_dataclass(text_field='test')),
         ]
     )
 
@@ -36,7 +36,9 @@ def test_search_app_preprocessing_indexing(resources_folder_path, mm_dataclass):
         [
             Document(
                 mm_dataclass(
-                    video=os.path.join(resources_folder_path, 'gif/folder1/file.gif')
+                    video_field=os.path.join(
+                        resources_folder_path, 'gif/folder1/file.gif'
+                    )
                 ),
             )
         ]
@@ -77,7 +79,7 @@ def test_image_preprocessing(app_cls, is_indexing, resources_folder_path, mm_dat
 
     app = app_cls()
     uri = os.path.join(resources_folder_path, 'image/a.jpg')
-    da = DocumentArray([Document(mm_dataclass(image=uri))])
+    da = DocumentArray([Document(mm_dataclass(image_field=uri))])
     da = app.preprocess(da)
     assert len(da) == 1
     assert len(da[0].chunks) == 1

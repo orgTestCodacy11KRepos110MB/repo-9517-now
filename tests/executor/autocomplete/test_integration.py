@@ -17,14 +17,14 @@ def test_autocomplete(tmpdir, mm_dataclass):
             on='/search',
             inputs=DocumentArray(
                 [
-                    Document(mm_dataclass(text='background')),
-                    Document(mm_dataclass(text='background')),
-                    Document(mm_dataclass(text='bang')),
-                    Document(mm_dataclass(text='loading')),
-                    Document(mm_dataclass(text='loading')),
-                    Document(mm_dataclass(text='laugh')),
-                    Document(mm_dataclass(text='hello')),
-                    Document(mm_dataclass(text='red long dress')),
+                    Document(mm_dataclass(text_field='background')),
+                    Document(mm_dataclass(text_field='background')),
+                    Document(mm_dataclass(text_field='bang')),
+                    Document(mm_dataclass(text_field='loading')),
+                    Document(mm_dataclass(text_field='loading')),
+                    Document(mm_dataclass(text_field='laugh')),
+                    Document(mm_dataclass(text_field='hello')),
+                    Document(mm_dataclass(text_field='red long dress')),
                 ]
             ),
         )

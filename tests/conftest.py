@@ -27,9 +27,9 @@ def mm_dataclass():
 
     @dataclass
     class MMDoc:
-        text: Text = field(default=None)
-        image: Image = field(default=None)
-        video: Video = field(default=None)
+        text_field: Text = field(default=None)
+        image_field: Image = field(default=None)
+        video_field: Video = field(default=None)
 
     return MMDoc
 

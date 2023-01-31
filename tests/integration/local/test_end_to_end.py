@@ -7,11 +7,6 @@ from tests.integration.local.conftest import (  # noqa: F401
     get_flow,
     get_request_body,
 )
-from tests.integration.local.data import (  # noqa
-    artworks_data,
-    elastic_data,
-    pop_lyrics_data,
-)
 
 from now.constants import ACCESS_PATHS
 

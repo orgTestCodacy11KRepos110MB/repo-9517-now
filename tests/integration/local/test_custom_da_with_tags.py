@@ -20,7 +20,7 @@ from now.constants import ACCESS_PATHS, Models
                 'user_input_dict': {
                     'filter_fields': ['color'],
                 },
-                'document_mappings': [[Models.CLIP_MODEL, 512, ['title']]],
+                'document_mappings': [[Models.CLIP_MODEL, 512, ['text_field']]],
             },
         )
     ],

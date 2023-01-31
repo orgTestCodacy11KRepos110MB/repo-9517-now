@@ -145,7 +145,7 @@ def test_from_files_local(resources_folder_path):
         data_class,
     )
 
-    assert len(loaded_da) == 2
+    assert len(loaded_da) == 10
     for doc in loaded_da:
         assert doc.chunks[0].uri
 

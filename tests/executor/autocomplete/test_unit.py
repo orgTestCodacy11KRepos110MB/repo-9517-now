@@ -9,12 +9,12 @@ def mmdocs_with_text(mm_dataclass):
 
     return DocumentArray(
         [
-            Document(mm_dataclass(text='background')),
-            Document(mm_dataclass(text='background')),
-            Document(mm_dataclass(text='bang')),
-            Document(mm_dataclass(text='loading')),
-            Document(mm_dataclass(text='loading')),
-            Document(mm_dataclass(text='laugh')),
+            Document(mm_dataclass(text_field='background')),
+            Document(mm_dataclass(text_field='background')),
+            Document(mm_dataclass(text_field='bang')),
+            Document(mm_dataclass(text_field='loading')),
+            Document(mm_dataclass(text_field='loading')),
+            Document(mm_dataclass(text_field='laugh')),
         ]
     )
 
@@ -80,14 +80,14 @@ def test_search_update_profanity(tmpdir, mm_dataclass):
 
     da = DocumentArray(
         [
-            Document(mm_dataclass(text='background')),
-            Document(mm_dataclass(text='background')),
-            Document(mm_dataclass(text='shit')),
-            Document(mm_dataclass(text='loading')),
-            Document(mm_dataclass(text='fuck')),
-            Document(mm_dataclass(text='f*ck')),
-            Document(mm_dataclass(text='laugh')),
-            Document(mm_dataclass(text='fuck shit somethings')),
+            Document(mm_dataclass(text_field='background')),
+            Document(mm_dataclass(text_field='background')),
+            Document(mm_dataclass(text_field='shit')),
+            Document(mm_dataclass(text_field='loading')),
+            Document(mm_dataclass(text_field='fuck')),
+            Document(mm_dataclass(text_field='f*ck')),
+            Document(mm_dataclass(text_field='laugh')),
+            Document(mm_dataclass(text_field='fuck shit somethings')),
         ]
     )
 
@@ -119,12 +119,12 @@ def test_get_suggestion_bitrigrams(tmpdir, mm_dataclass):
 
     da = DocumentArray(
         [
-            Document(mm_dataclass(text='aziz')),
-            Document(mm_dataclass(text='test')),
-            Document(mm_dataclass(text='aziz test')),
-            Document(mm_dataclass(text='red')),
-            Document(mm_dataclass(text='red dress')),
-            Document(mm_dataclass(text='red long dress')),
+            Document(mm_dataclass(text_field='aziz')),
+            Document(mm_dataclass(text_field='test')),
+            Document(mm_dataclass(text_field='aziz test')),
+            Document(mm_dataclass(text_field='red')),
+            Document(mm_dataclass(text_field='red dress')),
+            Document(mm_dataclass(text_field='red long dress')),
         ]
     )
 

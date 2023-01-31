@@ -3,7 +3,6 @@ import pytest
 import requests
 from jina import Client
 from tests.integration.local.conftest import BASE_URL, SEARCH_URL, get_request_body
-from tests.integration.local.data import simple_data
 from tests.integration.remote.assertions import assert_search
 
 from now.constants import ACCESS_PATHS, Models
@@ -38,7 +37,7 @@ update_emails_url = f'{BASE_URL}/admin/updateUserEmails'
                     .get_user_info()['data']
                     .get('email')
                 ],
-                'document_mappings': [[Models.CLIP_MODEL, 512, ['title']]],
+                'document_mappings': [[Models.CLIP_MODEL, 512, ['text_field']]],
             },
         ),
     ],
