@@ -18,7 +18,6 @@ from now.constants import DatasetTypes, Models
 @pytest.mark.timeout(60 * 10)
 def test_end_to_end(
     cleanup,
-    start_bff,
     resources_folder_path,
 ):
     kwargs = {
