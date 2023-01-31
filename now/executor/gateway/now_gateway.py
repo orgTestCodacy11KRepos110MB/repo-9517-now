@@ -99,20 +99,25 @@ class NOWGateway(CompositeGateway):
             self.nginx_was_shutdown = True
 
     def setup_nginx(self):
-        output, error = cmd(
-            [
-                'nginx',
-                '-c',
-                os.path.join(cur_dir, '', 'nginx.conf'),
-            ]
-        )
+        command = [
+            'nginx',
+            '-c',
+            os.path.join(cur_dir, '', 'nginx.conf'),
+        ]
+        if 'NOW_CI' in os.environ:
+            command.insert(0, 'sudo')
+        output, error = cmd()
         sleep(10)
         self.logger.info('Nginx started')
         self.logger.info(f'nginx output: {output}')
         self.logger.info(f'nginx error: {error}')
 
     def shutdown_nginx(self):
-        output, error = cmd(['nginx', '-s', 'stop'])
+        command = ['nginx', '-s', 'stop']
+        if 'NOW_CI' in os.environ:
+            command.insert(0, 'sudo')
+        output, error = cmd(command)
+        sleep(10)
         self.logger.info('Nginx stopped')
         self.logger.info(f'nginx output: {output}')
         self.logger.info(f'nginx error: {error}')

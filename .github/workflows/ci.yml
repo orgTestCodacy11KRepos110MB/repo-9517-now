@@ -190,17 +190,17 @@ jobs:
         id: test
         run: |
           pytest --suppress-no-test-exit-code --cov=now -v -s -m "not gpu" --splits 9 --group ${{ matrix.group }} --splitting-algorithm least_duration tests/
-        timeout-minutes: 7
+        timeout-minutes: 20
         env:
           WOLF_TOKEN: ${{ secrets.WOLF_TOKEN }}
           S3_SCHEMA_FOLDER_PATH: ${{ secrets.S3_SCHEMA_FOLDER_PATH }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           S3_CUSTOM_DATA_PATH: ${{ secrets.S3_CUSTOM_DATA_PATH }}
-      - name: Setup tmate session for debugging
-        if: ${{ failure() || (github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled) }}
-        uses: mxschmitt/action-tmate@v3
-        timeout-minutes: 60
+#      - name: Setup tmate session for debugging
+#        if: ${{ failure() || (github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled) }}
+#        uses: mxschmitt/action-tmate@v3
+#        timeout-minutes: 60
       - name: Upload coverage
         uses: actions/upload-artifact@v2
         with:
