@@ -12,7 +12,6 @@ from now.executor.preprocessor import NOWPreprocessor
 
 BASE_URL = 'http://localhost:8081/api/v1'
 SEARCH_URL = f'{BASE_URL}/search-app/search'
-HOST = 'http://0.0.0.0'
 
 
 def get_request_body(secured):
