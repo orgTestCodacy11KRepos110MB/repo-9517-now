@@ -39,7 +39,7 @@ def test_search_app(resources_folder_path, endpoint, tmpdir, mm_dataclass):
         )
         result = DocumentArray.from_json(result.to_json())
 
-    assert len(result) == 2
-    assert result[0].text == ''
-    assert result[0].chunks[0].chunks[0].text == 'test'
-    assert result[1].chunks[0].chunks[0].blob
+        assert len(result) == 2
+        assert result[0].text == ''
+        assert result[0].chunks[0].chunks[0].text == 'test'
+        assert result[1].chunks[0].chunks[0].blob
