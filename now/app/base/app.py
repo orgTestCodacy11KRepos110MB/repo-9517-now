@@ -1,3 +1,4 @@
+import json
 import os
 from copy import deepcopy
 from typing import Dict, List, Optional, Tuple, TypeVar
@@ -165,7 +166,7 @@ class JinaNOWApp:
                 'uses'
             ] = f'jinahub+docker://2m00g87k/{NOW_GATEWAY_VERSION}'
             flow_yaml_content['gateway']['uses_with'] = {
-                'user_input_dict': user_input_dict
+                'user_input_dict': json.dumps(user_input_dict)
             }
             # Call the executor stubs function to get the executors for the flow
             flow_yaml_content['executors'] = self.get_executor_stubs(
