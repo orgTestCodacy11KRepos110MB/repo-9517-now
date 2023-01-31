@@ -6,19 +6,16 @@ from jina import Client
 from now.app.base.app import JinaNOWApp
 from now.constants import (
     ACCESS_PATHS,
+    DEMO_NS,
     EXTERNAL_CLIP_HOST,
     NOW_AUTOCOMPLETE_VERSION,
     NOW_ELASTIC_INDEXER_VERSION,
     NOW_PREPROCESSOR_VERSION,
     Apps,
+    DatasetTypes,
     Models,
 )
-from now.demo_data import (
-    AVAILABLE_DATASETS,
-    DEFAULT_EXAMPLE_HOSTED,
-    DemoDataset,
-    DemoDatasetNames,
-)
+from now.demo_data import AVAILABLE_DATASETS, DemoDataset, DemoDatasetNames
 from now.executor.name_to_id_map import name_to_id_map
 from now.now_dataclasses import UserInput
 
@@ -53,20 +50,17 @@ class SearchApp(JinaNOWApp):
 
     def is_demo_available(self, user_input) -> bool:
         if (
-            DEFAULT_EXAMPLE_HOSTED
-            and user_input.dataset_name in DEFAULT_EXAMPLE_HOSTED
+            user_input.dataset_type == DatasetTypes.DEMO
             and 'NOW_EXAMPLES' not in os.environ
             and 'NOW_CI_RUN' not in os.environ
         ):
             client = Client(
-                host=f'grpcs://now-example-{self.app_name}-{user_input.dataset_name}.dev.jina.ai'.replace(
-                    '_', '-'
-                )
+                host=f'grpcs://{DEMO_NS.format(user_input.dataset_name.split("/")[-1])}.dev.jina.ai'
             )
             try:
                 client.post('/dry_run', timeout=2)
-            except Exception:
-                return False
+            except Exception as e:  # noqa E722
+                pass
             return True
         return False
 

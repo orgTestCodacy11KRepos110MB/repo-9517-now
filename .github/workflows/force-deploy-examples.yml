@@ -15,6 +15,11 @@ on:
 jobs:
   python-script:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [ 3.7 ]
+        group: [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 ]
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python
@@ -36,7 +41,8 @@ jobs:
         env:
           WOLF_TOKEN: ${{ secrets.WOLF_EXAMPLES_TOKEN }}
       - name: Deploy examples
-        run: python scripts/deploy_examples.py
+        working-directory: ./scripts
+        run: python deploy_examples.py ${{ matrix.group }}
         env:
           WOLF_TOKEN: ${{ secrets.WOLF_EXAMPLES_TOKEN }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}

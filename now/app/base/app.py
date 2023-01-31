@@ -7,8 +7,8 @@ from jina import __version__ as jina_version
 from jina.jaml import JAML
 
 from now.app.base.preprocess import preprocess_image, preprocess_text, preprocess_video
-from now.constants import DEFAULT_FLOW_NAME, NOW_GATEWAY_VERSION, PREFETCH_NR
-from now.demo_data import DEFAULT_EXAMPLE_HOSTED, DemoDataset
+from now.constants import DEFAULT_FLOW_NAME, DEMO_NS, NOW_GATEWAY_VERSION, PREFETCH_NR
+from now.demo_data import DemoDataset
 from now.now_dataclasses import DialogOptions, UserInput
 from now.utils import docarray_typing_to_modality_string
 
@@ -145,14 +145,9 @@ class JinaNOWApp:
             'CUSTOM_DNS': '',
         }
         if 'NOW_EXAMPLES' in os.environ:
-            valid_app = DEFAULT_EXAMPLE_HOSTED.get(user_input.app_instance.app_name, {})
-            is_demo_ds = user_input.dataset_name in valid_app
-            if is_demo_ds:
-                common_env_dict[
-                    'CUSTOM_DNS'
-                ] = f'now-example-{user_input.app_instance.app_name}-{user_input.dataset_name}.dev.jina.ai'.replace(
-                    '_', '-'
-                )
+            common_env_dict[
+                'CUSTOM_DNS'
+            ] = f'{DEMO_NS.format(user_input.dataset_name.split("/")[-1])}.dev.jina.ai'
         # Read the flow and add generic configuration such as labels in the flow
         # Keep this function as simple as possible. It should only be used to add generic configuration needed
         # for all apps. App specific configuration should be added in the app specific setup function.

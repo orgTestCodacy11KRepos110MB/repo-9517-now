@@ -3,8 +3,6 @@ with:
   name: nowapi
 jcloud:
   version: ${{ ENV.JINA_VERSION }}
-  custom_dns:
-    - ${{ ENV.CUSTOM_DNS }}
   labels:
     team: now
 gateway:
@@ -15,3 +13,6 @@ gateway:
   prefetch: 10
   env:
     JINA_LOG_LEVEL: DEBUG
+  jcloud:
+    custom_dns:
+      - ${{ ENV.CUSTOM_DNS }}

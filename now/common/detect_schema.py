@@ -15,6 +15,7 @@ from now.constants import (
 from now.data_loading.elasticsearch import ElasticsearchConnector
 from now.now_dataclasses import UserInput
 from now.utils import (
+    RetryException,
     docarray_typing_to_modality_string,
     flatten_dict,
     modality_string_to_docarray_typing,
@@ -151,6 +152,9 @@ def set_field_names_from_docarray(user_input: UserInput, **kwargs):
     Makes a request to hubble API and downloads the first 10 documents
     from the document array and uses the first document to get the schema and sets field_names in user_input
     """
+    if not user_input.dataset_name:
+        raise RetryException('Please retry')
+
     cookies = {
         'st': user_input.jwt['token'],
     }

@@ -21,3 +21,10 @@ repos:
       - id: pycln
         args: [ --config=pyproject.toml ]
         exclude: ^now/thirdparty/
+  - repo: local
+    hooks:
+      - id: aws-crendentials-check
+        name: aws-crendentials-check
+        entry: scripts/aws-check-credentials.sh
+        language: script
+        pass_filenames: false

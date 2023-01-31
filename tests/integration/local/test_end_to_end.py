@@ -2,6 +2,11 @@ import pytest
 import requests
 from docarray.typing import Image, Text
 from tests.integration.local.conftest import SEARCH_URL, get_flow, get_request_body
+from tests.integration.local.data import (  # noqa
+    artworks_data,
+    elastic_data,
+    pop_lyrics_data,
+)
 
 from now.constants import ACCESS_PATHS, Models
 

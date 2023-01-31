@@ -12,9 +12,9 @@ import pathlib
 import now.utils
 from now.common import options
 from now.common.options import construct_app
-from now.constants import Apps
+from now.constants import Apps, DialogStatus
 from now.now_dataclasses import DialogOptions, UserInput
-from now.utils import RetryException
+from now.utils import DemoAvailableException, RetryException
 
 cur_dir = pathlib.Path(__file__).parent.resolve()
 
@@ -25,24 +25,26 @@ def configure_user_input(**kwargs) -> UserInput:
     # Create the search app.
     # TODO: refactor this when more apps are added
     user_input.app_instance = construct_app(Apps.SEARCH_APP)
-    # Ask the base/common options
-    for option in options.base_options:
-        if inspect.isfunction(option):
-            for result in option(user_input, **kwargs):
-                configure_option(result, user_input, **kwargs)
-        else:
-            configure_option(option, user_input, **kwargs)
-    # Ask app specific options
-    for option in user_input.app_instance.options:
-        configure_option(option, user_input, **kwargs)
+    # Ask the options
+    for option in options.base_options + user_input.app_instance.options:
+        if configure_option(option, user_input, **kwargs) == DialogStatus.BREAK:
+            break
 
     return user_input
 
 
-def configure_option(option: DialogOptions, user_input: UserInput, **kwargs):
+def configure_option(
+    option: DialogOptions, user_input: UserInput, **kwargs
+) -> DialogStatus:
+    # Check if it is dynamic. If it is then spawn multiple dialogs for each option and return with continue
+    if option.dynamic_func:
+        for result in option.dynamic_func(user_input):
+            configure_option(result, user_input, **kwargs)
+        return DialogStatus.CONTINUE
+
     # Check if it is dependent on some other dialog options
     if option.depends_on and not option.conditional_check(user_input):
-        return
+        return DialogStatus.SKIP
 
     # Populate choices if needed
     if option.choices and inspect.isfunction(option.choices):
@@ -66,6 +68,8 @@ def configure_option(option: DialogOptions, user_input: UserInput, **kwargs):
         except RetryException as e:
             print(e)
             continue
+        except DemoAvailableException:
+            return DialogStatus.BREAK
         break
 
-    return val
+    return DialogStatus.CONTINUE

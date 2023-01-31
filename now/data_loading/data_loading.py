@@ -17,26 +17,31 @@ from now.now_dataclasses import UserInput
 from now.utils import sigmap
 
 
-def load_data(user_input: UserInput, data_class=None) -> DocumentArray:
+def load_data(
+    user_input: UserInput, data_class=None, print_callback=print
+) -> DocumentArray:
     """Based on the user input, this function will pull the configured DocumentArray dataset ready for the preprocessing
     executor.
 
     :param user_input: The configured user object. Result from the Jina Now cli dialog.
     :param data_class: The dataclass that should be used for the DocumentArray.
+    :param print_callback: The callback function that should be used to print the status.
     :return: The loaded DocumentArray.
     """
     da = None
     if user_input.dataset_type in [DatasetTypes.DOCARRAY, DatasetTypes.DEMO]:
-        print('⬇  Pull DocumentArray dataset')
+        print_callback('⬇  Pull DocumentArray dataset')
         da = _pull_docarray(user_input.dataset_name, user_input.admin_name)
         da = _add_tags_to_da(da, user_input)
         da = _get_da_with_index_fields(da, user_input)
     elif user_input.dataset_type == DatasetTypes.PATH:
-        print('💿  Loading files from disk')
+        print_callback('💿  Loading files from disk')
         da = _load_from_disk(user_input=user_input, data_class=data_class)
     elif user_input.dataset_type == DatasetTypes.S3_BUCKET:
+        print_callback('🗄  Loading files from S3')
         da = _list_files_from_s3_bucket(user_input=user_input, data_class=data_class)
     elif user_input.dataset_type == DatasetTypes.ELASTICSEARCH:
+        print_callback('🔍  Loading data from Elasticsearch')
         da = _extract_es_data(user_input=user_input, data_class=data_class)
     da = set_modality_da(da)
     add_metadata_to_da(da, user_input)

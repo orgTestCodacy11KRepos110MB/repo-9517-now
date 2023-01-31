@@ -93,7 +93,10 @@ async def search(data: SearchRequestModel):
                 # in case we have content and uri, the content is preferred
                 result = {'uri': chunk.uri}
             else:
-                raise Exception('Result without content', doc.id, doc.tags)
+                # We should not raise exception else it breaks the playground if a single chunk has no content
+                # irrespective of what other chunks hold. We should just log it and move on.
+                print('Result without content', doc.id, doc.tags)
+                result = {'text': ''}
             results[field_name] = result
         match = SearchResponseModel(
             id=doc.id,

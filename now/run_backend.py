@@ -38,7 +38,7 @@ def run(
     :param kwargs: Additional arguments
     :return:
     """
-
+    print_callback = kwargs.get('print_callback', print)
     if user_input.dataset_type in [DatasetTypes.DEMO, DatasetTypes.DOCARRAY]:
         user_input.field_names_to_dataclass_fields = {
             field: field for field in user_input.index_fields
@@ -48,7 +48,9 @@ def run(
         data_class, user_input.field_names_to_dataclass_fields = create_dataclass(
             user_input=user_input
         )
-    dataset = load_data(user_input, data_class)
+
+    dataset = load_data(user_input, data_class, print_callback)
+    print_callback('Data loaded. Deploying the flow...')
 
     # Set up the app specific flow and also get the environment variables and its values
     env_dict = app_instance.setup(
@@ -73,7 +75,8 @@ def run(
     #     trigger_scheduler(user_input, gateway_host_internal)
     # else:
     # index the data right away
-    index_docs(user_input, dataset, client)
+    print_callback('Flow deployed. Indexing the data...')
+    index_docs(user_input, dataset, client, print_callback, **kwargs)
 
     return (
         gateway_port,
@@ -115,11 +118,11 @@ def trigger_scheduler(user_input, host):
         print(f'Indexing will not be scheduled. Please contact Jina AI support.')
 
 
-def index_docs(user_input, dataset, client):
+def index_docs(user_input, dataset, client, print_callback, **kwargs):
     """
     Index the data right away
     """
-    print(f"▶ indexing {len(dataset)} documents in batches")
+    print_callback(f"▶ indexing {len(dataset)} documents in batches")
     params = {'access_paths': ACCESS_PATHS}
     if user_input.secured:
         params['jwt'] = user_input.jwt
@@ -129,8 +132,9 @@ def index_docs(user_input, dataset, client):
         max_request_size=user_input.app_instance.max_request_size,
         parameters=deepcopy(params),
         return_results=False,
+        **kwargs,
     )
-    print('⭐ Success - your data is indexed')
+    print_callback('⭐ Success - your data is indexed')
 
 
 @time_profiler
@@ -141,6 +145,7 @@ def call_flow(
     endpoint: str = '/index',
     parameters: Optional[Dict] = None,
     return_results: Optional[bool] = False,
+    **kwargs,
 ):
     request_size = estimate_request_size(dataset, max_request_size)
 
@@ -159,7 +164,17 @@ def call_flow(
                     parameters=parameters,
                     return_results=return_results,
                     continue_on_error=True,
+                    on_done=kwargs.get('on_done', None),
+                    on_error=kwargs.get('on_error', None),
+                    on_always=kwargs.get('on_always', None),
                 )
+                if kwargs.get('custom_callback', None):
+                    kwargs['custom_callback'](
+                        client_resp=response,
+                        batch_idx=len(batch),
+                        tot_idx=len(dataset),
+                        host=client.args.host,
+                    )
                 break
             except Exception as e:
                 if try_nr == 4:

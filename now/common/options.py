@@ -23,6 +23,7 @@ from now.deployment.deployment import cmd
 from now.log import yaspin_extended
 from now.now_dataclasses import DialogOptions, UserInput
 from now.utils import (
+    DemoAvailableException,
     RetryException,
     get_info_hubble,
     jina_auth_login,
@@ -41,7 +42,11 @@ def _check_index_field(user_input: UserInput, **kwargs):
     if not user_input.index_fields:
         raise RetryException('Please select at least one index field')
 
-    if (
+    if '__all__' in user_input.index_fields:
+        user_input.index_fields = list(
+            user_input.index_field_candidates_to_modalities.keys()
+        )
+    elif (
         user_input.index_fields[0]
         not in user_input.index_field_candidates_to_modalities.keys()
     ):
@@ -116,10 +121,7 @@ DATASET_TYPE = DialogOptions(
 
 
 def check_login_dataset(user_input: UserInput):
-    if (
-        user_input.dataset_type in [DatasetTypes.DEMO, DatasetTypes.DOCARRAY]
-        and user_input.jwt is None
-    ):
+    if user_input.dataset_type == DatasetTypes.DOCARRAY and user_input.jwt is None:
         _jina_auth_login(user_input)
 
 
@@ -133,6 +135,19 @@ def _get_demo_data_choices(user_input: UserInput, **kwargs):
     ]
 
 
+def _check_if_demo_available(user_input: UserInput, **kwargs):
+    # If the demo is available then do not continue with the dialog and break
+    if user_input.app_instance.is_demo_available(user_input):
+        raise DemoAvailableException(
+            'Demo is available. Suspending the remaining dialog'
+        )
+    # We need login only if the deployment is needed else
+    # for hosted example user should have access without login
+    if user_input.jwt is None:
+        _jina_auth_login(user_input)
+    set_field_names_from_docarray(user_input)
+
+
 DEMO_DATA = DialogOptions(
     name='dataset_name',
     prompt_message='What demo dataset do you want to use?',
@@ -143,7 +158,7 @@ DEMO_DATA = DialogOptions(
     description='Select one of the available demo datasets',
     conditional_check=lambda user_input, **kwargs: user_input.dataset_type
     == DatasetTypes.DEMO,
-    post_func=lambda user_input, **kwargs: set_field_names_from_docarray(user_input),
+    post_func=lambda user_input, **kwargs: _check_if_demo_available(user_input),
 )
 
 DOCARRAY_NAME = DialogOptions(
@@ -213,7 +228,12 @@ INDEX_FIELDS = DialogOptions(
     choices=lambda user_input, **kwargs: [
         {'name': field, 'value': field}
         for field in user_input.index_field_candidates_to_modalities.keys()
-    ],
+    ]
+    + (
+        [{'name': 'All of the above', 'value': '__all__'}]
+        if len(user_input.index_field_candidates_to_modalities) > 1
+        else []
+    ),
     prompt_message='Please select the index fields:',
     prompt_type='checkbox',
     is_terminal_command=True,
@@ -241,10 +261,13 @@ FILTER_FIELDS = DialogOptions(
 
 
 def update_model_choice(user_input: UserInput, option_name, **kwargs):
+    if not kwargs.get(option_name):
+        raise RetryException('Please select at least one model')
+
     user_input.model_choices[option_name] = kwargs.get(option_name)
 
 
-def get_models_dialog(user_input: UserInput, **kwargs):
+def get_models_dialog(user_input: UserInput):
     models_dialog = []
     for index_field in user_input.index_fields:
         option_name = f'{index_field}_model'
@@ -256,14 +279,25 @@ def get_models_dialog(user_input: UserInput, **kwargs):
                 choices=MODALITY_TO_MODELS[
                     user_input.index_field_candidates_to_modalities[index_field]
                 ],
-                post_func=lambda user_input, option_name=option_name, **kwargs: update_model_choice(
-                    user_input, option_name, **kwargs
+                post_func=lambda user_inp, opt_name=option_name, **kwargs: update_model_choice(
+                    user_inp, opt_name, **kwargs
                 ),
             )
         )
 
     return models_dialog
 
+
+MODEL_SELECTION = DialogOptions(
+    name='model_selection',
+    prompt_message='This is a dynamic dialog which will spawn multiple dialog options',
+    prompt_type='list',
+    choices=[],
+    depends_on=INDEX_FIELDS,
+    conditional_check=lambda user_input: user_input.index_fields,
+    is_terminal_command=True,
+    dynamic_func=get_models_dialog,
+)
 
 ES_INDEX_NAME = DialogOptions(
     name='es_index_name',
@@ -390,7 +424,7 @@ def _jina_auth_login(user_input: UserInput, **kwargs):
 app_config = [APP_NAME]
 data_type = [DATASET_TYPE]
 data_fields = [INDEX_FIELDS, FILTER_FIELDS]
-get_models = [get_models_dialog]
+get_models = [MODEL_SELECTION]
 data_demo = [DEMO_DATA]
 data_da = [DOCARRAY_NAME, DATASET_PATH]
 data_s3 = [DATASET_PATH_S3, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION_NAME]
