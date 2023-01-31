@@ -104,9 +104,10 @@ class NOWGateway(CompositeGateway):
             '-c',
             os.path.join(cur_dir, '', 'nginx.conf'),
         ]
+        # need to use sudo for tests which use the python class directly
         if 'NOW_CI' in os.environ:
             command.insert(0, 'sudo')
-        output, error = cmd()
+        output, error = cmd(command)
         sleep(10)
         self.logger.info('Nginx started')
         self.logger.info(f'nginx output: {output}')
@@ -114,6 +115,7 @@ class NOWGateway(CompositeGateway):
 
     def shutdown_nginx(self):
         command = ['nginx', '-s', 'stop']
+        # need to use sudo for tests which use the python class directly
         if 'NOW_CI' in os.environ:
             command.insert(0, 'sudo')
         output, error = cmd(command)
