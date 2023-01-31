@@ -320,6 +320,7 @@ class TestElasticIndexer:
             protocol=['http'],
             port=[8081],
             env={'JINA_LOG_LEVEL': 'DEBUG'},
+            uses_with={'with_playground': False},
         ).add(
             uses=NOWElasticIndexer,
             uses_with={

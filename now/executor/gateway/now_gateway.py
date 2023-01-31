@@ -1,9 +1,8 @@
+import json
 import os
 from time import sleep
-from typing import Dict
 
 import streamlit.web.bootstrap
-from docarray import Document
 from jina import Gateway
 from jina.serve.runtimes.gateway import CompositeGateway
 from jina.serve.runtimes.gateway.http.fastapi import FastAPIBaseGateway
@@ -64,12 +63,16 @@ class BFFGateway(FastAPIBaseGateway):
 
 
 class NOWGateway(CompositeGateway):
-    def __init__(self, user_input_dict: Dict = {}, **kwargs):
+    def __init__(
+        self, user_input_dict: str = '', with_playground: bool = True, **kwargs
+    ):
         # need to update port ot 8082, as nginx will listen on 8081
         kwargs['runtime_args']['port'] = [8082]
         super().__init__(**kwargs)
 
         self.user_input = UserInput()
+        if not isinstance(user_input_dict, dict) and isinstance(user_input_dict, str):
+            user_input_dict = json.loads(user_input_dict) if user_input_dict else {}
         for attr_name, prev_value in self.user_input.__dict__.items():
             setattr(
                 self.user_input,
@@ -79,16 +82,21 @@ class NOWGateway(CompositeGateway):
 
         # note order is important
         self._add_gateway(BFFGateway, CG_BFF_PORT, **kwargs)
-        self._add_gateway(
-            PlaygroundGateway, 8501, **{'secured': self.user_input.secured, **kwargs}
-        )
-        # self._add_gateway(PlaygroundGateway, 8501, secured,  **kwargs)
+        if with_playground:
+            self._add_gateway(
+                PlaygroundGateway,
+                8501,
+                **{'secured': self.user_input.secured, **kwargs},
+            )
 
         self.setup_nginx()
+        self.nginx_was_shutdown = False
 
     async def shutdown(self):
         await super().shutdown()
-        self.shutdown_nginx()
+        if not self.nginx_was_shutdown:
+            self.shutdown_nginx()
+            self.nginx_was_shutdown = True
 
     def setup_nginx(self):
         output, error = cmd(
@@ -128,23 +136,6 @@ if __name__ == '__main__':
 
     os.environ['JINA_LOG_LEVEL'] = 'DEBUG'
 
-    # class DummyEncoder(Executor):
-    #     @requests
-    #     def foo(self, docs: DocumentArray, **kwargs):
-    #         for index, doc in enumerate(docs):
-    #             doc.matches = DocumentArray(
-    #                 [
-    #                     Document(
-    #                         MMResult(
-    #                             title=f'test title {index}: {i}',
-    #                             desc=f'test desc {index}: {i}',
-    #                         )
-    #                     )
-    #                     for i in range(10)
-    #                 ]
-    #             )
-    #         return docs
-
     f = (
         Flow().config_gateway(
             # uses=f'jinahub+docker://q4x2gadu/0.0.32',
@@ -180,11 +171,11 @@ if __name__ == '__main__':
 
     with f:
         # f.block()
-        sleep(10)
+        # sleep(10)
         print('start')
-        result = f.post(on='/search', inputs=Document(text='test'))
-        result.summary()
-        result[0].matches.summary()
-        result[0].matches[0].summary()
+        # result = f.post(on='/search', inputs=Document(text='test'))
+        # result.summary()
+        # result[0].matches.summary()
+        # result[0].matches[0].summary()
 
     print('done')

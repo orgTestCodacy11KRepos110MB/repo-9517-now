@@ -12,7 +12,7 @@ HOST = 'http://0.0.0.0'
 
 
 def get_request_body(secured):
-    request_body = get_default_request_body(host=HOST, secured=secured)
+    request_body = get_default_request_body(secured=secured)
     return request_body
 
 
@@ -38,6 +38,7 @@ def get_flow(preprocessor_args=None, indexer_args=None, tmpdir=None):
                 'user_input_dict': {
                     'secured': secured,
                 },
+                'with_playground': False,
             },
             env={'JINA_LOG_LEVEL': 'DEBUG'},
         )

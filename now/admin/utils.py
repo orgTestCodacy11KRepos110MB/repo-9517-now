@@ -3,8 +3,8 @@ import os
 import hubble
 
 
-def get_default_request_body(host, secured):
-    request_body = {'host': host}
+def get_default_request_body(secured):
+    request_body = {}
     if secured:
         if 'WOLF_TOKEN' in os.environ:
             os.environ['JINA_AUTH_TOKEN'] = os.environ['WOLF_TOKEN']

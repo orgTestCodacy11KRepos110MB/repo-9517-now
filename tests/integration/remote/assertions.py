@@ -46,7 +46,7 @@ def assert_deployment_queries(
 
     if kwargs.secured:
         # test add email
-        request_body = get_default_request_body(secured=kwargs.secured, host=host)
+        request_body = get_default_request_body(secured=kwargs.secured)
         request_body['user_emails'] = ['florian.hoenicke@jina.ai']
         response = requests.post(
             f'{url}/admin/updateUserEmails',
@@ -86,7 +86,7 @@ def get_search_request_body(
     search_modality,
     dataset=None,
 ):
-    request_body = get_default_request_body(host=host, secured=kwargs.secured)
+    request_body = get_default_request_body(secured=kwargs.secured)
     request_body['limit'] = 9
     # Perform end-to-end check via bff
     if search_modality == 'text':

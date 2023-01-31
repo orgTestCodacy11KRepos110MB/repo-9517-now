@@ -13,7 +13,7 @@ def update_api_keys(api_keys, remote_host):
 
     url = f"https://nowrun.jina.ai/api/v1"  # remote
     # url = f'http://localhost:8080/api/v1'  # for local testing
-    request_body = get_default_request_body(secured=True, host=remote_host)
+    request_body = get_default_request_body(secured=True)
     # request_body['host'] = f'grpc://0.0.0.0'  # for local testing
     # request_body['port'] = 9090  # for local testing
     request_body['api_keys'] = api_keys

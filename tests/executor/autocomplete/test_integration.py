@@ -11,6 +11,7 @@ def test_autocomplete(tmpdir, mm_dataclass):
         protocol=['http'],
         port=[8081],
         env={'JINA_LOG_LEVEL': 'DEBUG'},
+        uses_with={'with_playground': False},
     ).add(uses=NOWAutoCompleteExecutor2, workspace=tmpdir) as f:
         f.post(
             on='/search',
