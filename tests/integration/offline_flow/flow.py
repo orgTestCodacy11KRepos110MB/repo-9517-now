@@ -5,6 +5,7 @@ import numpy as np
 from docarray import DocumentArray
 
 from now.executor.autocomplete import NOWAutoCompleteExecutor2
+from now.executor.gateway.bff.app.v1.routers import helper
 from now.executor.indexer.elastic import NOWElasticIndexer
 from now.executor.preprocessor import NOWPreprocessor
 
@@ -37,7 +38,13 @@ class OfflineFlow:
     def mock_client(self, monkeypatch):
         offline_client = get_client(self)
         # todo: fix this similar to how 'client_with_mocked_jina_client' is fixed
-        # monkeypatch.setattr(helper, 'get_jina_client', lambda **kwargs: offline_client)
+        monkeypatch.setattr(
+            helper.GatewayStreamer, 'get_streamer', lambda **kwargs: offline_client
+        )
+        # monkeypatch.patch(
+        #     'now.executor.gateway.bff.app.v1.routers.helper.GatewayStreamer.get_streamer',
+        #     _get_jina_streamer,
+        # )
 
     def post(self, endpoint, inputs, parameters: Dict[str, str], *args, **kwargs):
         # call executors:
@@ -58,7 +65,8 @@ class OfflineFlow:
 
 def get_client(offline_flow):
     class Client:
-        def post(self, endpoint, inputs, parameters, *args, **kwargs):
+        async def stream_docs(self, endpoint, inputs, parameters, *args, **kwargs):
+            print(f'posting to {endpoint}')
             # definition of executors:
             docs = offline_flow.post(endpoint, inputs, parameters, *args, **kwargs)
             return docs

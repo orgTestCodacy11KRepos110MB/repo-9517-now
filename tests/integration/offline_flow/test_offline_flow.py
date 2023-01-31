@@ -10,7 +10,8 @@ from now.executor.gateway.bff.app.v1.routers.search import search
 from now.now_dataclasses import UserInput
 
 
-def test_docarray(monkeypatch, setup_service_running, multi_modal_data):
+@pytest.mark.asyncio
+async def test_docarray(monkeypatch, setup_service_running, multi_modal_data):
     """
     Test all executors and bff together without creating a flow.
     The Clip Encoder is mocked because it is an external executor.
@@ -28,7 +29,7 @@ def test_docarray(monkeypatch, setup_service_running, multi_modal_data):
     )
 
     assert index_result == DocumentArray()
-    search_result = search(
+    search_result = await search(
         SearchRequestModel(
             query=[{'name': 'text', 'value': 'girl on motorbike', 'modality': 'text'}],
         )
