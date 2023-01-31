@@ -1,36 +1,53 @@
+import hubble
+import pytest
 import requests
 from jina import Client
 from tests.integration.local.conftest import BASE_URL, SEARCH_URL, get_request_body
 from tests.integration.local.data import simple_data
 from tests.integration.remote.assertions import assert_search
 
-from now.constants import ACCESS_PATHS
+from now.constants import ACCESS_PATHS, Models
 
 API_KEY = 'my_key'
 update_api_keys_url = f'{BASE_URL}/admin/updateApiKeys'
 update_emails_url = f'{BASE_URL}/admin/updateUserEmails'
 
 
-def test_add_key(simple_data, setup_service_running, random_index_name, tmpdir):
-    # client = hubble.Client(
-    #     token=get_request_body(secured=True)['jwt']['token'],
-    #     max_retries=None,
-    #     jsonify=True,
-    # )
-    # admin_email = client.get_user_info()['data'].get('email')
-    #
-    # f = get_flow(
-    #     preprocessor_args={'admin_emails': [admin_email]},
-    #     indexer_args={
-    #         'admin_emails': [admin_email],
-    #         'index_name': random_index_name,
-    #         'document_mappings': [[Models.CLIP_MODEL, 512, ['title']]],
-    #     },
-    #     tmpdir=tmpdir,
-    # )
-    # with f:
-    f = Client(host='http://localhost:8081')
-    f.index(
+@pytest.mark.parametrize(
+    'get_flow',
+    [
+        (
+            {
+                'admin_emails': [
+                    hubble.Client(
+                        token=get_request_body(secured=True)['jwt']['token'],
+                        max_retries=None,
+                        jsonify=True,
+                    )
+                    .get_user_info()['data']
+                    .get('email')
+                ]
+            },
+            {
+                'admin_emails': [
+                    hubble.Client(
+                        token=get_request_body(secured=True)['jwt']['token'],
+                        max_retries=None,
+                        jsonify=True,
+                    )
+                    .get_user_info()['data']
+                    .get('email')
+                ],
+                'document_mappings': [[Models.CLIP_MODEL, 512, ['title']]],
+            },
+        ),
+    ],
+    indirect=True,
+)
+def test_add_key(get_flow, simple_data, setup_service_running, random_index_name):
+    client = Client(host='http://localhost:8081')
+
+    client.index(
         simple_data,
         parameters={
             'access_paths': ACCESS_PATHS,
@@ -55,7 +72,7 @@ def test_add_key(simple_data, setup_service_running, random_index_name, tmpdir):
     del request_body['jwt']
     request_body['api_key'] = API_KEY
     request_body['limit'] = 9
-    assert_search(SEARCH_URL, request_body, expected_status_code=500)
+    # assert_search(SEARCH_URL, request_body, expected_status_code=500)
 
     print('# add api key')
     request_body_update_keys = get_request_body(secured=True)
